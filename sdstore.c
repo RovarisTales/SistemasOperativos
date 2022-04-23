@@ -14,15 +14,18 @@ int status(){
     return 0;
 }
 
-int procfile(int argc,char *argv[]){
-    /*
-    char*  entrada_saida [2];
-    strcpy(entrada_saida [0],argv[0]);
+int procfile(int argc,char *argv[])
+{
+
+    char* entrada_saida [2];
+    entrada_saida [0]= (char *) malloc(sizeof (argv[0]) + 4);
+    strcpy(entrada_saida[0],"< ");
+    entrada_saida [1]= (char *) malloc(sizeof (argv[1]));
+    strcat(entrada_saida [0],argv[0]);
     strcpy(entrada_saida [1],argv[1]);
+    strcat(entrada_saida[0]," >");
     printf("%s",entrada_saida[0]);
     printf("%s",entrada_saida[1]);
-    */
-    printf("%d\n",argc);
     for (int i = 2 ; i < argc ; i++)
     {
 
@@ -34,18 +37,13 @@ int procfile(int argc,char *argv[]){
             _exit(1);
         }
         */
-        printf("ARGV1 : %s\n",argv[1]);
         char transf [17 + strlen(argv[i])];
         strcpy(transf,"./SDStore-transf/");
-        printf("TRANSF %s\n",transf);
         strcat(transf ,argv[i]);
-        printf("TRANSF %s\n",transf);
-        if (fork() == 0)
+        if (!fork())
         {
             //close(pipe_fd)
-            printf("\nOIIIIIIIIII");
-
-            //execv("transf" ,argv -(argc +2));
+            execv(transf ,entrada_saida);
             _exit(1);
         }
     }
@@ -57,6 +55,8 @@ int procfile(int argc,char *argv[]){
 int main (int argc, char *argv[]){
 
     char * str = (char *) malloc(sizeof (argv[1]));
+
+    execv("./SDStore-transf/bcompress ",argv+2);
 
     switch(strcmp(argv[1],"proc-file"))
     {
