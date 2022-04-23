@@ -1,4 +1,13 @@
 /home/tiagorodrigues/Transferências/CLion-2022.1/clion-2022.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/tiagorodrigues/Transferências/CLion-2022.1/clion-2022.1/bin/ninja/linux/ninja -G Ninja -S "/home/tiagorodrigues/Área de Trabalho/Universidade/Sistemas Operativos/SistemasOperativos" -B "/home/tiagorodrigues/Área de Trabalho/Universidade/Sistemas Operativos/SistemasOperativos/cmake-build-debug"
 -- Configuring done
--- Generating done
--- Build files have been written to: /home/tiagorodrigues/Área de Trabalho/Universidade/Sistemas Operativos/SistemasOperativos/cmake-build-debug
+CMake Error at CMakeLists.txt:6 (add_executable):
+  Cannot find source file:
+
+    main.c
+
+
+CMake Error at CMakeLists.txt:6 (add_executable):
+  No SOURCES given to target: SistemasOperativos
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.
