@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 int status(){
     return 0;
@@ -17,25 +18,18 @@ int status(){
 int procfile(int argc,char *argv[]){
 
 
-    char* entrada_saida [2];
-    entrada_saida [0]= (char *) malloc(sizeof (argv[0]));
-    //strcpy(entrada_saida[0],"< ");
-    //strcat(entrada_saida[0],argv[0]);
-    /*
-    entrada_saida [0] = (char*) malloc(sizeof ("<"));
-    entrada_saida [0] = "<";
-    entrada_saida [2] = (char*) malloc(sizeof ("<"));
-    entrada_saida [2] = ">";
-    entrada_saida [3]= (char *) malloc(sizeof (argv[1]));
-     */
-    entrada_saida [1]= (char *) malloc(sizeof (argv[1]));
-    strcat(entrada_saida [0],argv[0]);
-    strcpy(entrada_saida [1],argv[1]);
-    //strcat(entrada_saida[0]," >");
-    printf("%s",entrada_saida[0]);
+    char *entrada_saida[] = {"./SDStore-transf/bcompress",NULL};
+
+
     //printf("%s",entrada_saida[1]);
 
-/*
+
+    close(0);
+    int fd0 = open(argv[0], O_RDONLY,0666);
+    dup(fd0);
+    close(1);
+    int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
+    dup(fd1);
     for (int i = 2 ; i < argc ; i++)
     {
         /*
@@ -49,16 +43,21 @@ int procfile(int argc,char *argv[]){
         char transf [17 + strlen(argv[i])];
         strcpy(transf,"./SDStore-transf/");
         strcat(transf ,argv[i]);
-        if (!fork())
-        {
+        if (!fork()){
             //close(pipe_fd)
-            printf("OIII");
-            fflush(stdout);
+            close(0);
+            int fd0 = open(argv[0], O_RDONLY,0666);
+            dup(fd0);
+            close(1);
+            int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
+            dup(fd1);
             execv(transf ,entrada_saida);
             _exit(1);
         }
+        wait(NULL);
     }
-*/
+    close(fd1);
+    close(fd0);
 
     return 0;
 
@@ -67,15 +66,38 @@ int procfile(int argc,char *argv[]){
 
 int main (int argc, char *argv[]){
 
+
+    //execv("./SDStore-transf/encrypt",argv+1);
+
+    //printf("%s %s",argv[1],argv[2]);
+
+
+    //execv("./SDStore-transf/encrypt",argv+1);
+
     /*
-    for (int i = 1 ; i < argc ; i++ )
+    char* entrada_saida [4];
+    entrada_saida [0] = (char *) malloc(sizeof ("./SDStore-transf/encrypt"));
+    strcpy(entrada_saida[0],"./SDStore-transf/encrypt");
+    entrada_saida [1]= (char *) malloc(sizeof (argv[0])+4);
+    entrada_saida [2]= (char *) malloc(sizeof (argv[1]));
+    strcpy(entrada_saida[1],argv[1]);
+    //strcat(entrada_saida [0],argv[1]);
+    strcpy(entrada_saida [2],argv[2]);
+    //strcat(entrada_saida[0]," >");
+    entrada_saida[3] = NULL;
+    for (int i = 0 ; i < 3; i++)
     {
-        printf("%s",argv[i]);
+        printf("%s\n",entrada_saida[i]);
         write(stdout, argv[i] , strlen(argv[i]));
     }
-    //execv("./SDStore-transf/bcompress",argv+1);
+    fflush(stdout);
+    if(!fork())
+    {
+        execv("./SDStore-transf/encrypt",entrada_saida);
+    }
 
     */
+
     switch(strcmp(argv[1],"proc-file"))
     {
         case 0:
@@ -88,7 +110,6 @@ int main (int argc, char *argv[]){
             break;
     }
     //printf("OIiii");
-
 
 
     return 0;
