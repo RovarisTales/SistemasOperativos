@@ -43,7 +43,14 @@ int procfile(int argc,char *argv[]){
         char transf [17 + strlen(argv[i])];
         strcpy(transf,"./SDStore-transf/");
         strcat(transf ,argv[i]);
-        if (!fork()){
+        if (!fork())
+        {
+            int fd1 = open(argv[0],O_RDONLY,0666);
+            int fd = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666); dup2(fd,STDOUT_FILENO);
+            dup2(fd1,0);
+            execvp(argv[2],NULL); 
+            close(fd);
+            /*
             //close(pipe_fd)
             close(0);
             int fd0 = open(argv[0], O_RDONLY,0666);
@@ -53,6 +60,7 @@ int procfile(int argc,char *argv[]){
             dup(fd1);
             execv(transf ,entrada_saida);
             _exit(1);
+            */
         }
         wait(NULL);
     }
