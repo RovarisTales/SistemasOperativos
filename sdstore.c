@@ -18,54 +18,124 @@ int status(){
 int procfile(int argc,char *argv[]){
 
 
-    char *entrada_saida[] = {"./SDStore-transf/bcompress",NULL};
-
 
     //printf("%s",entrada_saida[1]);
 
-//	Necessário??
-//    close(0);
-//  int fd0 = open(argv[0], O_RDONLY,0666);
-//    dup(fd0);
-//    close(1);
-//    int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
-//    dup(fd1);
-    for (int i = 2 ; i < argc ; i++)
-    {
-        /*
-        int pipe_fd[2];
-        if(pipe(pipe_fd[0]) < 0)
-        {
-            perror("pipe");
-            _exit(1);
+
+    
+
+    //int p[2] = pipe(p);
+    //criar n-2 pipes para os filhos
+    int p[argc-2][2];
+    int i;
+    for (i = 2 ; i < argc ; i++){
+        //pipe 0 leitura
+        //pipe 1 escrita
+        //cria n-esimo pipe
+        if(i != argc-1){
+            if(pipe(p[i-2]) < 0){
+                perror("pipe");
+                _exit(1);
+            }
         }
-        */
         char transf [17 + strlen(argv[i])];
         strcpy(transf,"./SDStore-transf/");
         strcat(transf ,argv[i]);
-        if (!fork())
-        {
-            int fd1 = open(argv[0],O_RDONLY,0666);
-            int fd = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666); dup2(fd,STDOUT_FILENO);
-            dup2(fd1,0);
-            execvp(argv[2],NULL); 
-            close(fd);
-            /*
+        //primeiro ciclo e 1 argumento
+        if(i == 2 && (i == (argc -1))){
+            
+            if(!fork()){
             //close(pipe_fd)
+            
+           
+            //close stdin e programa le o ficheiro fd0
             close(0);
             int fd0 = open(argv[0], O_RDONLY,0666);
+            //ficehiro passa a ser stdin
             dup(fd0);
+            //close stdout e programa escreve no ficheiro pipe escrita n
+            close(1);
+            int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
+            //stdout passa a ser pipe de escrita n-2
+            dup(fd1);
+            //programa executa
+            execl(transf ,transf,NULL);
+            perror("execl");
+            _exit(1);
+            
+            }
+        }
+        //primeiro ciclo
+        else if(i==2){
+            printf("entrei primeiro ciclo\n");
+            if(!fork()){
+            //close(pipe_fd)
+            //close do pipe que nao vamos usar
+            close(p[i-2][0]);
+            //close stdin e programa le o ficheiro fd0
+            close(0);
+            int fd0 = open(argv[0], O_RDONLY,0666);
+            //ficehiro passa a ser stdin
+            dup(fd0);
+            //close stdout e programa escreve no ficheiro pipe escrita n
+            close(1);
+            //int fd1 = write(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
+            //stdout passa a ser pipe de escrita n-2
+            dup(p[i-2][1]);
+            //programa executa
+            execl(transf ,transf,NULL);
+            perror("execl");
+            _exit(1);
+            
+            }
+        }
+        //ciclos seguintes
+        else if ((argc-1)!= i){
+            printf("entrei outros ciclos");
+            if(!fork()){
+            //close(pipe_fd)
+            //close do pipe que nao vamos usar
+            close(p[i-2][0]);
+            //close stdin e programa le o pipe anterior
+            close(0);
+            dup(p[i-3][0]);
+            //ficehiro passa a ser stdin
+            
+            //close stdout e programa escreve no ficheiro pipe escrita n
+            close(1);
+            //int fd1 = write(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
+            //stdout passa a ser pipe de escrita n-2
+            dup(p[i-2][1]);
+            //programa executa
+            execl(transf ,transf,NULL);
+            perror("execl");
+            _exit(1);
+            
+            }
+        }
+        //ultimo ciclo
+        else{
+            printf("entrei ultimo ciclo\n");
             close(1);
             int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
             dup(fd1);
-            execv(transf ,entrada_saida);
-            _exit(1);
-            */
+            close(0);
+            dup(p[i-3][0]);
+            execl(transf ,transf,NULL);
         }
+        //fecha pipe de escrita
+        close(p[i-2][1]);
+        //fecha pipe de leitura anterior
+        if(i!=2)close(p[i-3][0]);
+        if(i == (argc-1))close(p[i-2][0]);
         wait(NULL);
+        
     }
-    close(fd1);
-    close(fd0);
+    
+    
+    
+    
+    
 
     return 0;
 
@@ -75,39 +145,8 @@ int procfile(int argc,char *argv[]){
 int main (int argc, char *argv[]){
 
 
-    //execv("./SDStore-transf/encrypt",argv+1);
 
-    //printf("%s %s",argv[1],argv[2]);
-
-
-    //execv("./SDStore-transf/encrypt",argv+1);
-
-    /*
-    char* entrada_saida [4];
-    entrada_saida [0] = (char *) malloc(sizeof ("./SDStore-transf/encrypt"));
-    strcpy(entrada_saida[0],"./SDStore-transf/encrypt");
-    entrada_saida [1]= (char *) malloc(sizeof (argv[0])+4);
-    entrada_saida [2]= (char *) malloc(sizeof (argv[1]));
-    strcpy(entrada_saida[1],argv[1]);
-    //strcat(entrada_saida [0],argv[1]);
-    strcpy(entrada_saida [2],argv[2]);
-    //strcat(entrada_saida[0]," >");
-    entrada_saida[3] = NULL;
-    for (int i = 0 ; i < 3; i++)
-    {
-        printf("%s\n",entrada_saida[i]);
-        write(stdout, argv[i] , strlen(argv[i]));
-    }
-    fflush(stdout);
-    if(!fork())
-    {
-        execv("./SDStore-transf/encrypt",entrada_saida);
-    }
-
-    */
-
-    switch(strcmp(argv[1],"proc-file"))
-    {
+    switch(strcmp(argv[1],"proc-file")){
         case 0:
 
             procfile(argc-2,argv+2);
