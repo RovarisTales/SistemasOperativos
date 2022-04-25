@@ -23,13 +23,13 @@ int procfile(int argc,char *argv[]){
 
     //printf("%s",entrada_saida[1]);
 
-
-    close(0);
-    int fd0 = open(argv[0], O_RDONLY,0666);
-    dup(fd0);
-    close(1);
-    int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
-    dup(fd1);
+//	Necessário??
+//    close(0);
+//  int fd0 = open(argv[0], O_RDONLY,0666);
+//    dup(fd0);
+//    close(1);
+//    int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
+//    dup(fd1);
     for (int i = 2 ; i < argc ; i++)
     {
         /*
