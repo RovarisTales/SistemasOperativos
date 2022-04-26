@@ -12,6 +12,7 @@
 #include <fcntl.h>
 
 int status(){
+    printf("KKKKKKKKKKKKKKKKKKKKKKKKKKk VAI SE FUDER KKKKKKK \n");
     return 0;
 }
 
