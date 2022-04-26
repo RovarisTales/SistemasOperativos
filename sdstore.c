@@ -16,7 +16,7 @@ int status(){
 }
 
 int procfile(int argc,char *argv[]){
-
+    write(STDIN_FILENO,"Procesing\n",10);
 
     //criar n-2 pipes para os filhos
     int p[argc-2][2];
@@ -39,18 +39,13 @@ int procfile(int argc,char *argv[]){
             
             if(!fork()){
                 //close(pipe_fd)
-            
-           
-                //close stdin e programa le o ficheiro fd0
-                close(0);
                 int fd0 = open(argv[0], O_RDONLY,0666);
                 //ficehiro passa a ser stdin
-                dup(fd0);
+                dup2(fd0,0);
                 //close stdout e programa escreve no ficheiro pipe escrita n
-                close(1);
                 int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
                 //stdout passa a ser pipe de escrita n-2
-                dup(fd1);
+                dup2(fd1,STDOUT_FILENO);
                 //programa executa
             
                 execl(transf ,transf,NULL);
@@ -61,21 +56,19 @@ int procfile(int argc,char *argv[]){
         }
         //primeiro ciclo
         else if(i==2){
-            printf("entrei primeiro ciclo\n");
+
             if(!fork()){
                 //close(pipe_fd)
                 //close do pipe que nao vamos usar
                 close(p[i-2][0]);
                 //close stdin e programa le o ficheiro fd0
-                close(0);
                 int fd0 = open(argv[0], O_RDONLY,0666);
                 //ficehiro passa a ser stdin
-                dup(fd0);
+                dup2(fd0,STDIN_FILENO);
                 //close stdout e programa escreve no ficheiro pipe escrita n
-                close(1);
                 //int fd1 = write(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
                 //stdout passa a ser pipe de escrita n-2
-                dup(p[i-2][1]);
+                dup2(p[i-2][1],STDOUT_FILENO);
                 //programa executa
             
             
@@ -87,21 +80,18 @@ int procfile(int argc,char *argv[]){
         }
         //ciclos seguintes
         else if ((argc-1)!= i){
-            printf("entrei outros ciclos\n");
+
             if(!fork()){
-                //close(pipe_fd)
                 //close do pipe que nao vamos usar
                 close(p[i-2][0]);
                 //close stdin e programa le o pipe anterior
-                close(0);
-                dup(p[i-3][0]);
+                dup2(p[i-3][0],STDIN_FILENO);
                 //ficehiro passa a ser stdin
             
                 //close stdout e programa escreve no ficheiro pipe escrita n
-                close(1);
                 //int fd1 = write(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
                 //stdout passa a ser pipe de escrita n-2
-                dup(p[i-2][1]);
+                dup2(p[i-2][1],STDOUT_FILENO);
                 //programa executa
                 
                 execl(transf ,transf,NULL);
@@ -112,15 +102,12 @@ int procfile(int argc,char *argv[]){
         }
         //ultimo ciclo
         else{
-            printf("entrei ultimo ciclo\n");
+
             if(!fork()){
-                printf("entrei ultimo ciclo       ");
-                close(1);
+
                 int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
-                dup(fd1);
-                close(0);
-                dup(p[i-3][0]);
-                printf("%s executado",transf);
+                dup2(fd1,STDOUT_FILENO);
+                dup2(p[i-3][0],STDIN_FILENO);
                 execl(transf ,transf,NULL);
                 
                 _exit(1);
@@ -146,11 +133,11 @@ int main (int argc, char *argv[]){
 
     switch(strcmp(argv[1],"proc-file")){
         case 0:
-
+            write(STDOUT_FILENO,"Pending\n",8);
             procfile(argc-2,argv+2);
+            write(STDOUT_FILENO,"Concluded\n",10);
             break;
         default:
-            
             status();
             break;
     }
