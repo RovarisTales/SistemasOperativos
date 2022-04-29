@@ -26,9 +26,10 @@ int static id = 0;
 
 int main (int argc, char *argv[])
 {
-
-    mkfifo("contacto",0666);
+    printf("%s",argv[1]);
     ler_arquivo(argv[1]);
+    /*
+    mkfifo("contacto",0666);
     int fd = open("contacto",O_RDONLY,0666);
 
     switch(strcmp(argv[1],"proc-file"))
@@ -43,6 +44,7 @@ int main (int argc, char *argv[])
             status(id);
             break;
     }
+    */
 
     return 0;
 
@@ -50,9 +52,21 @@ int main (int argc, char *argv[])
 
 int ler_arquivo(char *arquivo)
 {
+    printf("%s\n",arquivo);
     int fd = open (arquivo, O_RDONLY);
     char buffer[128];
+    char oi[20];
     read(fd,buffer,128);
+    char *token = strtok(buffer, "\n");
+    printf("%s\n",token);
+    strcat(oi,token);
+    printf("%s\n",oi);
+
+    /*
+    char *valor = strtok(valor," ");
+    printf("%s\n",valor);
+    */
+
     
 }
 
@@ -61,7 +75,7 @@ int permissao ()
     return bcompress_e <= bcompress && bdecompress_e <= bdecompress && nop_e <= nop && gcompress_e <= gcompress 
     && gdecompress_e <= gdecompress &&  encrypt_e <= encrypt && decrypt_e <= decrypt ;
 }
-
+/*
 int status(int ed)
 {
     char arquivo_cliente[13];
@@ -89,6 +103,7 @@ int status(int ed)
     return 0;
 }
 
+*/
 //Adicionei a variavel ed, q é o id do processo , pois será imporante para comunicar com o cliente q tem o id o status do processo
 int procfile(int argc,char *argv[], int ed)
 {
