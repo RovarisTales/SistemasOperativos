@@ -13,23 +13,34 @@ int gcompress_e = 0;
 int gdecompress_e = 0;
 int nop_e = 0;
 
+int bcompress = 0;
+int bdecompress = 0;
+int decrypt = 0;
+int encrypt = 0;
+int gcompress = 0;
+int gdecompress = 0;
+int nop = 0;
+
 int static id = 0;
 
 
-int main (int argc, char *argv[]){
+int main (int argc, char *argv[])
+{
 
     mkfifo("contacto",0666);
-
+    ler_arquivo(argv[1]);
     int fd = open("contacto",O_RDONLY,0666);
 
-    switch(strcmp(argv[1],"proc-file")){
+    switch(strcmp(argv[1],"proc-file"))
+    {
         case 0:
+            if (permissao());
             write(STDOUT_FILENO,"Pending\n",8);
-            procfile(argc-2,argv+2);
+            procfile(argc-2,argv+2,id);
             write(STDOUT_FILENO,"Concluded\n",10);
             break;
         default:
-            status();
+            status(id);
             break;
     }
 
@@ -37,12 +48,50 @@ int main (int argc, char *argv[]){
 
 }
 
-int status(){
-    printf("KKKKKKKKKKKKKKKKKKKKKKKKKKk VAI SE FUDER KKKKKKK \n");
+int ler_arquivo(char *arquivo)
+{
+    int fd = open (arquivo, O_RDONLY);
+    char buffer[128];
+    read(fd,buffer,128);
+    
+}
+
+int permissao ()
+{
+    return bcompress_e <= bcompress && bdecompress_e <= bdecompress && nop_e <= nop && gcompress_e <= gcompress 
+    && gdecompress_e <= gdecompress &&  encrypt_e <= encrypt && decrypt_e <= decrypt ;
+}
+
+int status(int ed)
+{
+    char arquivo_cliente[13];
+    strcpy(arquivo_cliente,"/tmp/cliente");
+    char numero[1];
+    itoa(ed,numero,10);
+    strcat(arquivo_cliente,numero);
+
+    int fd = open(arquivo_cliente,O_WRONLY);
+    dup2(fd,STDOUT_FILENO);
+    int temporario = 0;
+    //Precisa fazer as tarefas q estao sendo executadas também mas isso precisa de comunicação com o pai q não esta feita ainda
+    //Ver variaveis globais .
+    printf("transf nop: %d/%d (running/max)",nop_e,nop);
+    printf("transf bcompress: %d/%d (running/max)",bcompress_e,bcompress);
+    printf("transf bdecompress: %d/%d (running/max)",bdecompress_e,bdecompress);
+    printf("transf gcompress: %d/%d (running/max)",gcompress_e,gcompress);
+    printf("transf gdecompress_e: %d/%d (running/max)",gdecompress_e,gdecompress);
+    printf("transf encrypt: %d/%d (running/max)",encrypt_e,encrypt);
+    printf("transf decrypt: %d/%d (running/max)",decrypt_e,decrypt);
+
+
+    close(fd);
+    
     return 0;
 }
 
-int procfile(int argc,char *argv[]){
+//Adicionei a variavel ed, q é o id do processo , pois será imporante para comunicar com o cliente q tem o id o status do processo
+int procfile(int argc,char *argv[], int ed)
+{
     write(STDIN_FILENO,"Procesing\n",10);
 
     //criar n-2 pipes para os filhos

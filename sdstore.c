@@ -18,8 +18,9 @@
 //TODO atualizar permissoes para fazer proc-file -> Breno
 //TODO atualizar proc-file() -> Tales
 //TODO atualizar argv no servidor para o pipe com nome -> Tales
-
-int main (int argc, char *argv[]){
+//TODO Ler arquivo 
+int main (int argc, char *argv[])
+{
     char buffer[1024];
 
     for (int i = 1; i < argc-1; i++)
