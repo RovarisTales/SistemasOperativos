@@ -37,7 +37,7 @@ int main (int argc, char *argv[])
     switch(strcmp(argv[1],"proc-file"))
     {
         case 0:
-            if (permissao(transformacoes))
+            if (permissao(n_transformacoes ,transformacoes))
             {
                 write(STDOUT_FILENO,"Pending\n",8);
                 procfile(n_transformacoes,transformacoes,id);
