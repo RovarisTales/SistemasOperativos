@@ -13,20 +13,20 @@ int gcompress_e = 0;
 int gdecompress_e = 0;
 int nop_e = 0;
 
-int bcompress = 0;
-int bdecompress = 0;
-int decrypt = 0;
-int encrypt = 0;
-int gcompress = 0;
-int gdecompress = 0;
-int nop = 0;
+int bcompressM = 0;
+int bdecompressM = 0;
+int decryptM = 0;
+int encryptM = 0;
+int gcompressM = 0;
+int gdecompressM = 0;
+int nopM = 0;
 
 int static id = 0;
 
 
 int main (int argc, char *argv[])
 {
-    printf("%s",argv[1]);
+    //printf("%s",argv[1]);
     ler_arquivo(argv[1]);
     /*
     mkfifo("contacto",0666);
@@ -50,32 +50,59 @@ int main (int argc, char *argv[])
 
 }
 
-int ler_arquivo(char *arquivo)
-{
-    printf("%s\n",arquivo);
-    int fd = open (arquivo, O_RDONLY);
-    char buffer[128];
-    char oi[20];
-    read(fd,buffer,128);
-    char *token = strtok(buffer, "\n");
-    printf("%s\n",token);
-    strcat(oi,token);
-    printf("%s\n",oi);
+void alteraglobal(char* var,char* num){
+    int val = atoi(num);
+    if(strcmp(var,"nop")== 0){
+        nopM = val;
+    }else if(strcmp(var,"bcompress")== 0){
+        bcompressM = val;
+    }else if(strcmp(var,"bdecompress")== 0){
+        bdecompressM = val;
+    }else if(strcmp(var,"gdecompress")== 0){
+        gdecompressM = val;
+    }else if(strcmp(var,"encrypt")== 0){
+        encryptM = val;
+    }else if(strcmp(var,"decrypt")== 0){
+        decryptM = val;
+    }else if(strcmp(var,"gcompress")== 0){
+        gcompressM = val;
+    }
 
-    /*
-    char *valor = strtok(valor," ");
-    printf("%s\n",valor);
-    */
 
-    
+
+
 }
 
-int permissao ()
-{
+int ler_arquivo(char *arquivo){
+    
+    int fd = open (arquivo, O_RDONLY);
+    char buffer[128];
+    //char oi[20];
+    char delimit[3] = " \n";
+    char* resto;
+    read(fd,buffer,128);
+    char* token;
+    char ant[12];
+    for(token = strtok_r(buffer, delimit,&resto); token != NULL ; token = strtok_r(resto,delimit,&resto)){
+        
+        if(strcmp("9",token)>0){
+            
+            alteraglobal(ant,token);
+            
+        }
+        else{
+            strcpy(ant,token);
+            
+        }
+    }
+    return 0;
+}
+/*
+int permissao (){
     return bcompress_e <= bcompress && bdecompress_e <= bdecompress && nop_e <= nop && gcompress_e <= gcompress 
     && gdecompress_e <= gdecompress &&  encrypt_e <= encrypt && decrypt_e <= decrypt ;
 }
-/*
+
 int status(int ed)
 {
     char arquivo_cliente[13];
@@ -105,8 +132,7 @@ int status(int ed)
 
 */
 //Adicionei a variavel ed, q é o id do processo , pois será imporante para comunicar com o cliente q tem o id o status do processo
-int procfile(int argc,char *argv[], int ed)
-{
+int procfile(int argc,char *argv[], int ed){
     write(STDIN_FILENO,"Procesing\n",10);
 
     //criar n-2 pipes para os filhos
