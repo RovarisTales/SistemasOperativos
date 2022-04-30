@@ -28,43 +28,60 @@ int main (int argc, char *argv[])
 {
     //printf("%s",argv[1]);
     ler_arquivo(argv[1]);
-    /*
     mkfifo("contacto",0666);
     int fd = open("contacto",O_RDONLY,0666);
-
+    //ACho q essa parte tem q ficar toda dentro de um filho
+    char *transformacoes[7];
+    int n_transformacoes = 0;
+    //Tem q ler as transformações adicionar para o array transformações e atualizar o numero de transformacoes do pedido do cliente
     switch(strcmp(argv[1],"proc-file"))
     {
         case 0:
-            if (permissao());
-            write(STDOUT_FILENO,"Pending\n",8);
-            procfile(argc-2,argv+2,id);
-            write(STDOUT_FILENO,"Concluded\n",10);
+            if (permissao(transformacoes))
+            {
+                write(STDOUT_FILENO,"Pending\n",8);
+                procfile(n_transformacoes,transformacoes,id);
+                write(STDOUT_FILENO,"Concluded\n",10);
+            }
             break;
         default:
             status(id);
             break;
     }
-    */
 
     return 0;
 
 }
 
-void alteraglobal(char* var,char* num){
+void alteraglobal(char* var,char* num)
+{
     int val = atoi(num);
     if(strcmp(var,"nop")== 0){
+
         nopM = val;
-    }else if(strcmp(var,"bcompress")== 0){
+    }
+    else if(strcmp(var,"bcompress")== 0)
+    {
         bcompressM = val;
-    }else if(strcmp(var,"bdecompress")== 0){
+    }
+    else if(strcmp(var,"bdecompress")== 0)
+    {
         bdecompressM = val;
-    }else if(strcmp(var,"gdecompress")== 0){
+    }
+    else if(strcmp(var,"gdecompress")== 0)
+    {
         gdecompressM = val;
-    }else if(strcmp(var,"encrypt")== 0){
+    }
+    else if(strcmp(var,"encrypt")== 0)
+    {
         encryptM = val;
-    }else if(strcmp(var,"decrypt")== 0){
+    }
+    else if(strcmp(var,"decrypt")== 0)
+    {
         decryptM = val;
-    }else if(strcmp(var,"gcompress")== 0){
+    }
+    else if(strcmp(var,"gcompress")== 0)
+    {
         gcompressM = val;
     }
 
@@ -97,10 +114,65 @@ int ler_arquivo(char *arquivo){
     }
     return 0;
 }
-/*
-int permissao (){
-    return bcompress_e <= bcompress && bdecompress_e <= bdecompress && nop_e <= nop && gcompress_e <= gcompress 
-    && gdecompress_e <= gdecompress &&  encrypt_e <= encrypt && decrypt_e <= decrypt ;
+
+int permissao (int n_transformacoes,char* transformacoes[] )
+{
+    char var [13];
+    for (int i = 0; i < n_transformacoes; i++)
+    {
+        strcpy(var, transformacoes[i]);
+        if(strcmp(var,"nop")== 0)
+        {
+           if ( nop_e+ 1 > nopM)
+            {
+                return 0;
+            } 
+        }
+        else if(strcmp(var,"bcompress")== 0)
+        {
+            if (bcompress_e + 1 > bcompressM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"bdecompress")== 0)
+        {
+            if (bdecompress_e + 1 > bdecompressM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"gdecompress")== 0)
+        {
+            if (gdecompress_e + 1 > gdecompressM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"gcompress")== 0)
+        {
+            if (gcompress_e + 1 > gcompressM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"encrypt")== 0)
+        {
+            if (encrypt_e + 1 > encryptM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"decrypt")== 0)
+        {
+            if (decrypt_e + 1 > decryptM)
+            {
+                return 0;
+            }
+        }
+        
+    }
+    return 1;
 }
 
 int status(int ed)
@@ -116,13 +188,13 @@ int status(int ed)
     int temporario = 0;
     //Precisa fazer as tarefas q estao sendo executadas também mas isso precisa de comunicação com o pai q não esta feita ainda
     //Ver variaveis globais .
-    printf("transf nop: %d/%d (running/max)",nop_e,nop);
-    printf("transf bcompress: %d/%d (running/max)",bcompress_e,bcompress);
-    printf("transf bdecompress: %d/%d (running/max)",bdecompress_e,bdecompress);
-    printf("transf gcompress: %d/%d (running/max)",gcompress_e,gcompress);
-    printf("transf gdecompress_e: %d/%d (running/max)",gdecompress_e,gdecompress);
-    printf("transf encrypt: %d/%d (running/max)",encrypt_e,encrypt);
-    printf("transf decrypt: %d/%d (running/max)",decrypt_e,decrypt);
+    printf("transf nop: %d/%d (running/max)",nop_e,nopM);
+    printf("transf bcompress: %d/%d (running/max)",bcompress_e,bcompressM);
+    printf("transf bdecompress: %d/%d (running/max)",bdecompress_e,bdecompressM);
+    printf("transf gcompress: %d/%d (running/max)",gcompress_e,gcompressM);
+    printf("transf gdecompress_e: %d/%d (running/max)",gdecompress_e,gdecompressM);
+    printf("transf encrypt: %d/%d (running/max)",encrypt_e,encryptM);
+    printf("transf decrypt: %d/%d (running/max)",decrypt_e,decryptM);
 
 
     close(fd);
