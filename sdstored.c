@@ -85,7 +85,7 @@ int ler_arquivo(char *arquivo){
     char ant[12];
     for(token = strtok_r(buffer, delimit,&resto); token != NULL ; token = strtok_r(resto,delimit,&resto)){
         
-        if(strcmp("9",token)>0){
+        if(strcmp("9",token)>=0){
             
             alteraglobal(ant,token);
             
