@@ -54,13 +54,14 @@ int main (int argc, char *argv[])
             switch(strcmp(transformacoes[0],"proc-file"))
             {
                 case 0:
-                    // permissao não esta a funcionar, pois se comento corre, e devia ter a permissao para correr
-                    while (!(permissao(i-1 ,transformacoes+1)))
+                    while (!(permissao(i-3 ,transformacoes+3)))
                     {
-                        
+                        sleep(1);
+                        printf("OI\n");
                     }
                     write(STDOUT_FILENO,"Pending\n",8);
-                    procfile(i-1,transformacoes,id);
+                    aumentarConf(i-3,transformacoes+3);
+                    procfile(i-1,transformacoes+1,id);
                     write(STDOUT_FILENO,"Concluded\n",10);
                     break;
                 default:
@@ -143,10 +144,10 @@ int permissao (int n_transformacoes,char* transformacoes[] )
         strcpy(var, transformacoes[i]);
         if(strcmp(var,"nop")== 0)
         {
-           if ( nop_e+ 1 > nopM)
-            {
-                return 0;
-            } 
+            if ( nop_e+ 1 > nopM)
+                {
+                    return 0;
+                } 
         }
         else if(strcmp(var,"bcompress")== 0)
         {
@@ -193,6 +194,80 @@ int permissao (int n_transformacoes,char* transformacoes[] )
         
     }
     return 1;
+}
+
+void aumentarConf(int n_transformacoes,char* transformacoes[]){
+    char var [13];
+    for (int i = 0; i < n_transformacoes; i++)
+    {
+        strcpy(var, transformacoes[i]);
+        if(strcmp(var,"nop")== 0)
+        {
+            nop_e++;
+        }
+        else if(strcmp(var,"bcompress")== 0)
+        {
+            bcompress_e++;
+        }
+        else if(strcmp(var,"bdecompress")== 0)
+        {
+            bdecompress_e++;
+        }
+        else if(strcmp(var,"gdecompress")== 0)
+        {
+            gdecompress_e++;
+        }
+        else if(strcmp(var,"gcompress")== 0)
+        {
+            gcompress_e++;
+        }
+        else if(strcmp(var,"encrypt")== 0)
+        {
+            encrypt_e++;
+        }
+        else if(strcmp(var,"decrypt")== 0)
+        {
+            decrypt_e++;
+        }
+        
+    }
+}
+
+void diminuirConf(int n_transformacoes,char* transformacoes[]){
+    char var [13];
+    for (int i = 0; i < n_transformacoes; i++)
+    {
+        strcpy(var, transformacoes[i]);
+        if(strcmp(var,"nop")== 0)
+        {
+            nop_e--;
+        }
+        else if(strcmp(var,"bcompress")== 0)
+        {
+            bcompress_e--;
+        }
+        else if(strcmp(var,"bdecompress")== 0)
+        {
+            bdecompress_e--;
+        }
+        else if(strcmp(var,"gdecompress")== 0)
+        {
+            gdecompress_e--;
+        }
+        else if(strcmp(var,"gcompress")== 0)
+        {
+            gcompress_e--;
+        }
+        else if(strcmp(var,"encrypt")== 0)
+        {
+            encrypt_e--;
+        }
+        else if(strcmp(var,"decrypt")== 0)
+        {
+            decrypt_e--;
+        }
+        
+    }
 }
 
 int status(int ed)
@@ -328,6 +403,7 @@ int procfile(int argc,char *argv[], int ed){
         if(i!=2)close(p[i-3][0]);
         if(i == (argc-1))close(p[i-2][0]);
         wait(NULL);
+        diminuirConf(argc,argv);
         
     }
  
