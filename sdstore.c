@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+// ./sdstore proc-file <priority> samples/file-a outputs/file-a-output bcompress nop gcompress encrypt nop
 
 //TODO comunicacao entre servidor e cliente -> Tiago
 //TODO status -> Breno
@@ -21,20 +22,19 @@
 //TODO Ler arquivo 
 int main (int argc, char *argv[])
 {
-    char buffer[1024];
+    char buffer[256];
 
-    for (int i = 1; i < argc-1; i++)
+    for (int i = 1; i < argc; i++)
     {
         strcat(buffer,argv[i]);
+        strcat(buffer," ");
     }
 
-    int fd = open("contacto_p_servidor",O_RDWR,0666);
+    printf("%s\n",buffer); //está a imprimir uma merda qualquer no inicio
+
+    int fd = open("contacto",O_WRONLY,0666);
     write(fd,buffer,strlen(buffer));
     //TODO while que espera o concluded e cria um FIFO para o processo.
-    while ()
-    {
-        /* code */
-    }
     
     close(fd);
     

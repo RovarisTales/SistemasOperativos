@@ -26,30 +26,50 @@ int static id = 0;
 
 int main (int argc, char *argv[])
 {
-    //printf("%s",argv[1]);
     ler_arquivo(argv[1]);
-    mkfifo("contacto",0666);
-    int fd = open("contacto",O_RDONLY,0666);
-    //ACho q essa parte tem q ficar toda dentro de um filho
-    char *transformacoes[7];
-    int n_transformacoes = 0;
-    //Tem q ler as transformações adicionar para o array transformações e atualizar o numero de transformacoes do pedido do cliente
-    switch(strcmp(argv[1],"proc-file"))
-    {
-        case 0:
-            if (permissao(n_transformacoes ,transformacoes))
-            {
-                write(STDOUT_FILENO,"Pending\n",8);
-                procfile(n_transformacoes,transformacoes,id);
-                write(STDOUT_FILENO,"Concluded\n",10);
-            }
-            break;
-        default:
-            status(id);
-            break;
-    }
 
-    return 0;
+    while (1)
+    {
+        // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
+        mkfifo("contacto",0666);
+        int fd = open("contacto",O_RDONLY,0666);
+        char line[256];
+        read(fd,line,256);
+        close(fd);
+        //printf("%s\n",line);
+        
+        if (!fork())
+        {
+            int i = 0;
+            char* resto;
+            char* token;
+            char *transformacoes[10];
+            for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
+                //printf("%s\n",token);
+                transformacoes[i] = malloc(sizeof(token));
+                strcpy(transformacoes[i++],token);
+            }
+
+            //Tem q ler as transformações adicionar para o array transformações e atualizar o numero de transformacoes do pedido do cliente
+            switch(strcmp(transformacoes[0],"proc-file"))
+            {
+                case 0:
+                    // permissao não esta a funcionar, pois se comento corre, e devia ter a permissao para correr
+                    while (!(permissao(i-1 ,transformacoes+1)))
+                    {
+                        
+                    }
+                    write(STDOUT_FILENO,"Pending\n",8);
+                    procfile(i-1,transformacoes,id);
+                    write(STDOUT_FILENO,"Concluded\n",10);
+                    break;
+                default:
+                    status(id);
+                    break;
+            }
+        }
+        
+    }
 
 }
 
@@ -177,32 +197,31 @@ int permissao (int n_transformacoes,char* transformacoes[] )
 
 int status(int ed)
 {
-    char arquivo_cliente[13];
-    strcpy(arquivo_cliente,"/tmp/cliente");
-    char numero[1];
-    itoa(ed,numero,10);
-    strcat(arquivo_cliente,numero);
+    // char arquivo_cliente[13];
+    // strcpy(arquivo_cliente,"/tmp/cliente");
+    // char numero[1];
+    // itoa(ed,numero,10);
+    // strcat(arquivo_cliente,numero);
 
-    int fd = open(arquivo_cliente,O_WRONLY);
-    dup2(fd,STDOUT_FILENO);
-    int temporario = 0;
-    //Precisa fazer as tarefas q estao sendo executadas também mas isso precisa de comunicação com o pai q não esta feita ainda
-    //Ver variaveis globais .
-    printf("transf nop: %d/%d (running/max)",nop_e,nopM);
-    printf("transf bcompress: %d/%d (running/max)",bcompress_e,bcompressM);
-    printf("transf bdecompress: %d/%d (running/max)",bdecompress_e,bdecompressM);
-    printf("transf gcompress: %d/%d (running/max)",gcompress_e,gcompressM);
-    printf("transf gdecompress_e: %d/%d (running/max)",gdecompress_e,gdecompressM);
-    printf("transf encrypt: %d/%d (running/max)",encrypt_e,encryptM);
-    printf("transf decrypt: %d/%d (running/max)",decrypt_e,decryptM);
+    // int fd = open(arquivo_cliente,O_WRONLY);
+    // dup2(fd,STDOUT_FILENO);
+    // int temporario = 0;
+    // //Precisa fazer as tarefas q estao sendo executadas também mas isso precisa de comunicação com o pai q não esta feita ainda
+    // //Ver variaveis globais .
+    // printf("transf nop: %d/%d (running/max)",nop_e,nopM);
+    // printf("transf bcompress: %d/%d (running/max)",bcompress_e,bcompressM);
+    // printf("transf bdecompress: %d/%d (running/max)",bdecompress_e,bdecompressM);
+    // printf("transf gcompress: %d/%d (running/max)",gcompress_e,gcompressM);
+    // printf("transf gdecompress_e: %d/%d (running/max)",gdecompress_e,gdecompressM);
+    // printf("transf encrypt: %d/%d (running/max)",encrypt_e,encryptM);
+    // printf("transf decrypt: %d/%d (running/max)",decrypt_e,decryptM);
 
 
-    close(fd);
+    // close(fd);
     
     return 0;
 }
 
-*/
 //Adicionei a variavel ed, q é o id do processo , pois será imporante para comunicar com o cliente q tem o id o status do processo
 int procfile(int argc,char *argv[], int ed){
     write(STDIN_FILENO,"Procesing\n",10);
