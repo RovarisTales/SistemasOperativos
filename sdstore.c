@@ -17,7 +17,7 @@
 //TODO Comunicação servidor para o cliente 
 int main (int argc, char *argv[])
 {
-    char buffer[256];
+    char buffer[128];
 
     for (int i = 1; i < argc; i++)
     {
@@ -25,7 +25,7 @@ int main (int argc, char *argv[])
         strcat(buffer," ");
     }
 
-    printf("%s\n",buffer); //está a imprimir uma merda qualquer no inicio
+    //printf("%s\n",buffer); //está a imprimir uma merda qualquer no inicio
 
     int fd = open("contacto",O_WRONLY,0666);
     write(fd,buffer,strlen(buffer));

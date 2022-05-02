@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 int bcompress_e = 0;
 int bdecompress_e = 0;
@@ -23,61 +25,6 @@ int nopM = 0;
 
 int static id = 0;
 
-
-int main (int argc, char *argv[])
-{
-    ler_arquivo(argv[1]);
-
-    while (1)
-    {
-        // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
-        
-        mkfifo("contacto",0666);
-        int fd = open("contacto",O_RDONLY,0666);
-        char line[256];
-        read(fd,line,256);
-        close(fd);
-        //printf("%s\n",line);
-        
-        if (!fork())
-        {
-            int i = 0;
-            char* resto;
-            char* token;
-            //aqui
-            char *transformacoes[10];
-            for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
-                //printf("%s\n",token);
-                transformacoes[i] = malloc(sizeof(token));
-                strcpy(transformacoes[i++],token);
-            }
-
-            //Tem q ler as transformações adicionar para o array transformações e atualizar o numero de transformacoes do pedido do cliente
-            switch(strcmp(transformacoes[0],"proc-file"))
-            {
-                case 0:
-                    while (!(permissao(i-3 ,transformacoes+3)))
-                    {
-                        sleep(1);
-                        printf("OI\n");
-                    }
-                    write(STDOUT_FILENO,"Pending\n",8);
-                    aumentarConf(i-3,transformacoes+3);
-                    
-                    procfile(i-1,transformacoes+1,id);
-                    diminuirConf(i-3,transformacoes +3);
-                    write(STDOUT_FILENO,"Concluded\n",10);
-                    
-                    break;
-                default:
-                    status(id);
-                    break;
-            }
-        }
-        
-    }
-
-}
 
 void alteraglobal(char* var,char* num){
     int val = atoi(num);
@@ -415,5 +362,62 @@ int procfile(int argc,char *argv[], int ed){
     
     return 0;
 
+
+}
+
+int main (int argc, char *argv[])
+{
+    ler_arquivo(argv[1]);
+
+    while (1)
+    {
+        // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
+        
+        mkfifo("contacto",0666);
+        int fd = open("contacto",O_RDONLY,0666);
+        char line[128];
+        read(fd,line,128);
+        close(fd);
+        //printf("%s\n",line);
+        
+        if (!fork())
+        {
+            int i = 0;
+            char* resto;
+            char* token;
+            //aqui
+            char *transformacoes[10];
+            for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
+                //printf("%s\n",token);
+                transformacoes[i] = malloc(sizeof(token));
+                strcpy(transformacoes[i],token);
+                printf("%s\n",transformacoes[i]);
+                i++;
+            }
+
+            //Tem q ler as transformações adicionar para o array transformações e atualizar o numero de transformacoes do pedido do cliente
+            switch(strcmp(transformacoes[0],"proc-file"))
+            {
+                case 0:
+                    while (!(permissao(i-3 ,transformacoes+3)))
+                    {
+                        sleep(1);
+                        printf("OI\n");
+                    }
+                    write(STDOUT_FILENO,"Pending\n",8);
+                    aumentarConf(i-3,transformacoes+3);
+                    
+                    procfile(i-1,transformacoes+1,id);
+                    diminuirConf(i-3,transformacoes +3);
+                    write(STDOUT_FILENO,"Concluded\n",10);
+                    
+                    break;
+                default:
+                    status(id);
+                    break;
+            }
+        }
+        
+    }
 
 }
