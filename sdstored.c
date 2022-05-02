@@ -31,6 +31,7 @@ int main (int argc, char *argv[])
     while (1)
     {
         // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
+        
         mkfifo("contacto",0666);
         int fd = open("contacto",O_RDONLY,0666);
         char line[256];
@@ -61,12 +62,11 @@ int main (int argc, char *argv[])
                     }
                     write(STDOUT_FILENO,"Pending\n",8);
                     aumentarConf(i-3,transformacoes+3);
-                    //criei um filho para poder fazer procfiles em simultaneo
-                    if(!fork()){
-                        procfile(i-1,transformacoes+1,id);
-                        diminuirConf(i-3,transformacoes +3);
-                        write(STDOUT_FILENO,"Concluded\n",10);
-                    }
+                    
+                    procfile(i-1,transformacoes+1,id);
+                    diminuirConf(i-3,transformacoes +3);
+                    write(STDOUT_FILENO,"Concluded\n",10);
+                    
                     break;
                 default:
                     status(id);
@@ -78,8 +78,7 @@ int main (int argc, char *argv[])
 
 }
 
-void alteraglobal(char* var,char* num)
-{
+void alteraglobal(char* var,char* num){
     int val = atoi(num);
     if(strcmp(var,"nop")== 0){
 
@@ -407,6 +406,7 @@ int procfile(int argc,char *argv[], int ed){
         if(i!=2)close(p[i-3][0]);
         if(i == (argc-1))close(p[i-2][0]);
         wait(NULL);
+        printf("ciclo finalizado");
         
         
     }
