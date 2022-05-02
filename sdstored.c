@@ -33,7 +33,8 @@ void diminuirConf(int n_transformacoes,char* transformacoes[]);
 int status(int ed);
 
 int main (int argc, char *argv[])
-{
+{   
+    int id = 0;
     ler_arquivo(argv[1]);
 
     while (1){
