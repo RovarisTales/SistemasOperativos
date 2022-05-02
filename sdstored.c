@@ -61,8 +61,12 @@ int main (int argc, char *argv[])
                     }
                     write(STDOUT_FILENO,"Pending\n",8);
                     aumentarConf(i-3,transformacoes+3);
-                    procfile(i-1,transformacoes+1,id);
-                    write(STDOUT_FILENO,"Concluded\n",10);
+                    //criei um filho para poder fazer procfiles em simultaneo
+                    if(!fork()){
+                        procfile(i-1,transformacoes+1,id);
+                        diminuirConf(i-3,transformacoes +3);
+                        write(STDOUT_FILENO,"Concluded\n",10);
+                    }
                     break;
                 default:
                     status(id);
@@ -403,10 +407,10 @@ int procfile(int argc,char *argv[], int ed){
         if(i!=2)close(p[i-3][0]);
         if(i == (argc-1))close(p[i-2][0]);
         wait(NULL);
-        diminuirConf(argc,argv);
+        
         
     }
- 
+    
     return 0;
 
 
