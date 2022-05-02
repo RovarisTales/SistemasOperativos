@@ -369,8 +369,7 @@ int main (int argc, char *argv[])
 {
     ler_arquivo(argv[1]);
 
-    while (1)
-    {
+    while (1){
         // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
         
         mkfifo("contacto",0666);
@@ -378,10 +377,10 @@ int main (int argc, char *argv[])
         char line[128];
         read(fd,line,128);
         close(fd);
-        //printf("%s\n",line);
+        printf("%s\n",line);
         
-        if (!fork())
-        {
+        if (!fork()){       
+            
             int i = 0;
             char* resto;
             char* token;
@@ -391,7 +390,7 @@ int main (int argc, char *argv[])
                 //printf("%s\n",token);
                 transformacoes[i] = malloc(sizeof(token));
                 strcpy(transformacoes[i],token);
-                printf("%s\n",transformacoes[i]);
+                printf("transF : %s\n",transformacoes[i]);
                 i++;
             }
 
@@ -417,6 +416,8 @@ int main (int argc, char *argv[])
                     break;
             }
         }
+        line[0] = '\0';
+        
         
     }
 

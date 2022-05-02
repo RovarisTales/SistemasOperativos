@@ -18,17 +18,25 @@
 int main (int argc, char *argv[])
 {
     char buffer[128];
-
+    //sdsdstreijhyase proc-file banan.txt final alt1 alt2
+    //argc 6
+    printf("%d aqui\n",argc);
     for (int i = 1; i < argc; i++)
     {
         strcat(buffer,argv[i]);
-        strcat(buffer," ");
+        printf("%s %d aqui carai \n",argv[i],i);
+
+        if (i != (argc-1)){
+            strcat(buffer," ");
+        }
+        else strcat(buffer,"\0");
     }
+    printf("%sbuffer\n ",buffer);
 
     //printf("%s\n",buffer); //está a imprimir uma merda qualquer no inicio
 
     int fd = open("contacto",O_WRONLY,0666);
-    write(fd,buffer,strlen(buffer));
+    write(fd,buffer,sizeof(buffer));
     //TODO while que espera o concluded e cria um FIFO para o processo.
     
     close(fd);
