@@ -26,7 +26,7 @@ int static id = 0;
 
 int main (int argc, char *argv[])
 {
-    ler_arquivo(argv[1]);
+    //ler_arquivo(argv[1]);
 
     while (1)
     {
@@ -44,6 +44,7 @@ int main (int argc, char *argv[])
             int i = 0;
             char* resto;
             char* token;
+            //aqui
             char *transformacoes[10];
             for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
                 //printf("%s\n",token);
