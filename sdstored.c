@@ -26,7 +26,7 @@ int static id = 0;
 
 int main (int argc, char *argv[])
 {
-    //ler_arquivo(argv[1]);
+    ler_arquivo(argv[1]);
 
     while (1)
     {
@@ -318,6 +318,7 @@ int procfile(int argc,char *argv[], int ed){
                 _exit(1);
             }
         }
+        //TODO aqui trocar o coiso
         char transf [17 + strlen(argv[i])];
         strcpy(transf,"./SDStore-transf/");
         strcat(transf ,argv[i]);
