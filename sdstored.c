@@ -39,7 +39,7 @@ int main (int argc, char *argv[])
 
     while (1){
         // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
-        
+        //colocar indenficador para nao fazer varios filhos
         mkfifo("contacto",0666);
         int fd = open("contacto",O_RDONLY,0666);
         char line[128];
