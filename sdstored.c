@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+
+//Parar de usar variaveis globais ?
 int bcompress_e = 0;
 int bdecompress_e = 0;
 int decrypt_e = 0;
@@ -23,10 +25,73 @@ int gcompressM = 0;
 int gdecompressM = 0;
 int nopM = 0;
 
-int static id = 0;
+void alteraglobal(char* var,char* num);
+int ler_arquivo(char *arquivo);
+int procfile(int argc,char *argv[], int ed);
+void aumentarConf(int n_transformacoes,char* transformacoes[]);
+void diminuirConf(int n_transformacoes,char* transformacoes[]);
+int status(int ed);
 
+int main (int argc, char *argv[])
+{
+    ler_arquivo(argv[1]);
+    int id = 0;
 
-void alteraglobal(char* var,char* num){
+    while (1)
+    {
+        // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
+
+        mkfifo("contacto",0666);
+        int fd = open("contacto",O_RDONLY,0666);
+        char line[128];
+        read(fd,line,128);
+        close(fd);
+        //printf("%s\n",line);
+
+        if (!fork())
+        {
+            int i = 0;
+            char* resto;
+            char* token;
+            //aqui
+            char *transformacoes[10];
+            for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
+                //printf("%s\n",token);
+                transformacoes[i] = malloc(sizeof(token));
+                strcpy(transformacoes[i],token);
+                printf("%s\n",transformacoes[i]);
+                i++;
+            }
+
+            //Tem q ler as transformações adicionar para o array transformações e atualizar o numero de transformacoes do pedido do cliente
+            switch(strcmp(transformacoes[0],"proc-file"))
+            {
+                case 0:
+                    while (!(permissao(i-3 ,transformacoes+3)))
+                    {
+                        sleep(1);
+                        printf("OI\n");
+                    }
+                    write(STDOUT_FILENO,"Pending\n",8);
+                    aumentarConf(i-3,transformacoes+3);
+
+                    procfile(i-1,transformacoes+1,id);
+                    diminuirConf(i-3,transformacoes +3);
+                    write(STDOUT_FILENO,"Concluded\n",10);
+
+                    break;
+                default:
+                    status(id);
+                    break;
+            }
+        }
+
+    }
+
+}
+
+void alteraglobal(char* var,char* num)
+{
     int val = atoi(num);
     if(strcmp(var,"nop")== 0){
 
@@ -62,7 +127,8 @@ void alteraglobal(char* var,char* num){
 
 }
 
-int ler_arquivo(char *arquivo){
+int ler_arquivo(char *arquivo)
+{
     
     int fd = open (arquivo, O_RDONLY);
     char buffer[128];
@@ -147,7 +213,8 @@ int permissao (int n_transformacoes,char* transformacoes[] )
     return 1;
 }
 
-void aumentarConf(int n_transformacoes,char* transformacoes[]){
+void aumentarConf(int n_transformacoes,char* transformacoes[])
+{
     char var [13];
     for (int i = 0; i < n_transformacoes; i++)
     {
@@ -184,7 +251,8 @@ void aumentarConf(int n_transformacoes,char* transformacoes[]){
     }
 }
 
-void diminuirConf(int n_transformacoes,char* transformacoes[]){
+void diminuirConf(int n_transformacoes,char* transformacoes[])
+{
     char var [13];
     for (int i = 0; i < n_transformacoes; i++)
     {
@@ -249,7 +317,8 @@ int status(int ed)
 }
 
 //Adicionei a variavel ed, q é o id do processo , pois será imporante para comunicar com o cliente q tem o id o status do processo
-int procfile(int argc,char *argv[], int ed){
+int procfile(int argc,char *argv[], int ed)
+{
     write(STDIN_FILENO,"Procesing\n",10);
 
     //criar n-2 pipes para os filhos
@@ -365,59 +434,3 @@ int procfile(int argc,char *argv[], int ed){
 
 }
 
-int main (int argc, char *argv[])
-{
-    ler_arquivo(argv[1]);
-
-    while (1)
-    {
-        // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
-        
-        mkfifo("contacto",0666);
-        int fd = open("contacto",O_RDONLY,0666);
-        char line[128];
-        read(fd,line,128);
-        close(fd);
-        //printf("%s\n",line);
-        
-        if (!fork())
-        {
-            int i = 0;
-            char* resto;
-            char* token;
-            //aqui
-            char *transformacoes[10];
-            for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
-                //printf("%s\n",token);
-                transformacoes[i] = malloc(sizeof(token));
-                strcpy(transformacoes[i],token);
-                printf("%s\n",transformacoes[i]);
-                i++;
-            }
-
-            //Tem q ler as transformações adicionar para o array transformações e atualizar o numero de transformacoes do pedido do cliente
-            switch(strcmp(transformacoes[0],"proc-file"))
-            {
-                case 0:
-                    while (!(permissao(i-3 ,transformacoes+3)))
-                    {
-                        sleep(1);
-                        printf("OI\n");
-                    }
-                    write(STDOUT_FILENO,"Pending\n",8);
-                    aumentarConf(i-3,transformacoes+3);
-                    
-                    procfile(i-1,transformacoes+1,id);
-                    diminuirConf(i-3,transformacoes +3);
-                    write(STDOUT_FILENO,"Concluded\n",10);
-                    
-                    break;
-                default:
-                    status(id);
-                    break;
-            }
-        }
-        
-    }
-
-}
