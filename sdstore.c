@@ -14,12 +14,7 @@
 #include <sys/stat.h>
 // ./sdstore proc-file <priority> samples/file-a outputs/file-a-output bcompress nop gcompress encrypt nop
 
-//TODO comunicacao entre servidor e cliente -> Tiago
-//TODO status -> Breno
-//TODO atualizar permissoes para fazer proc-file -> Breno
-//TODO atualizar proc-file() -> Tales
-//TODO atualizar argv no servidor para o pipe com nome -> Tales
-//TODO Ler arquivo 
+//TODO Comunicação servidor para o cliente 
 int main (int argc, char *argv[])
 {
     char buffer[256];
