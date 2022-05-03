@@ -7,6 +7,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+STRUCT :
+int id 
+int prioridade
+char* transformacoes[7];
+int n_transformacoes;
+
 
 //Parar de usar variaveis globais ?
 int bcompress_e = 0;
