@@ -7,12 +7,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-STRUCT :
-int id 
-int prioridade
-char* transformacoes[7];
-int n_transformacoes;
-
+struct fila{
+    int id ;
+    int prioridade;
+    char* transformacoes[7];
+    int n_transformacoes;
+};
 
 //Parar de usar variaveis globais ?
 int bcompress_e = 0;
@@ -37,12 +37,12 @@ int procfile(int argc,char *argv[], int ed);
 void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(int n_transformacoes,char* transformacoes[]);
 int status(int ed);
+int permissao (int n_transformacoes,char* transformacoes[] );
 
-int main (int argc, char *argv[])
-{   
+int main (int argc, char *argv[]){   
     int id = 0;
     ler_arquivo(argv[1]);
-
+    
     while (1){
         // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
         //colocar indenficador para nao fazer varios filhos
@@ -51,7 +51,7 @@ int main (int argc, char *argv[])
         char line[128];
         read(fd,line,128);
         close(fd);
-        printf("%s\n",line);
+        //printf("%s\n",line);
         
         if (!fork()){       
             
@@ -64,7 +64,7 @@ int main (int argc, char *argv[])
                 //printf("%s\n",token);
                 transformacoes[i] = malloc(sizeof(token));
                 strcpy(transformacoes[i],token);
-                printf("transF : %s\n",transformacoes[i]);
+                //printf("transF : %s\n",transformacoes[i]);
                 i++;
             }
 
@@ -72,17 +72,32 @@ int main (int argc, char *argv[])
             switch(strcmp(transformacoes[0],"proc-file"))
             {
                 case 0:
-                    while (!(permissao(i-3 ,transformacoes+3)))
+                    for(int per = 1;per==0;per = permissao(i-3 ,transformacoes+3))
                     {
+                        mkfifo("contacto2",0666);
+                        int fd1 = open("contacto2",O_WRONLY,0666);
+                        write(fd1,"Pending\n",8);
+                        close(fd1);
                         sleep(1);
-                        printf("OI\n");
+                        
                     }
-                    write(STDOUT_FILENO,"Pending\n",8);
+                    //printf("pipe open\n");
+
+                    
+                    //printf("pipe closed\n");
+                    mkfifo("contacto2",0666);
+                    int fd3 = open("contacto2",O_WRONLY,0666);
+                    write(fd3,"Processing\n",11);
+                    close(fd3);
                     aumentarConf(i-3,transformacoes+3);
                     
                     procfile(i-1,transformacoes+1,id);
+
                     diminuirConf(i-3,transformacoes +3);
-                    write(STDOUT_FILENO,"Concluded\n",10);
+                    mkfifo("contacto2",0666);
+                    int fd2 = open("contacto2",O_WRONLY,0666);
+                    write(fd2,"Concluded\n",10);
+                    close(fd2);
                     
                     break;
                 default:
@@ -324,10 +339,8 @@ int status(int ed)
 }
 
 //Adicionei a variavel ed, q é o id do processo , pois será imporante para comunicar com o cliente q tem o id o status do processo
-int procfile(int argc,char *argv[], int ed)
-{
-    write(STDIN_FILENO,"Procesing\n",10);
-
+int procfile(int argc,char *argv[], int ed){
+    
     //criar n-2 pipes para os filhos
     int p[argc-2][2];
     
@@ -430,12 +443,12 @@ int procfile(int argc,char *argv[], int ed)
         //fecha pipe de leitura anterior
         if(i!=2)close(p[i-3][0]);
         if(i == (argc-1))close(p[i-2][0]);
-        wait(NULL);
-        printf("ciclo finalizado");
+        //wait(NULL);
+        //printf("ciclo finalizado");
         
         
     }
-    
+    wait(NULL);
     return 0;
 
 
