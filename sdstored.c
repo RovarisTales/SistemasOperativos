@@ -7,11 +7,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-struct fila{
+struct fila
+{
     int id ;
     int prioridade;
     char* transformacoes[7];
     int n_transformacoes;
+    char *arquivo_destino;
+    char *arquivo_fonte;
 };
 
 //Parar de usar variaveis globais ?
