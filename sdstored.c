@@ -54,6 +54,7 @@ int main (int argc, char *argv[]){
         char line[128];
         read(fd,line,128);
         close(fd);
+        unlink("contacto");
         //printf("%s\n",line);
         
         if (!fork()){       
@@ -72,15 +73,16 @@ int main (int argc, char *argv[]){
             }
 
             //Tem q ler as transformações adicionar para o array transformações e atualizar o numero de transformacoes do pedido do cliente
-            switch(strcmp(transformacoes[0],"proc-file"))
-            {
+            switch(strcmp(transformacoes[0],"proc-file")){
                 case 0:
-                    for(int per = 1;per==0;per = permissao(i-3 ,transformacoes+3))
-                    {
-                        mkfifo("contacto2",0666);
-                        int fd1 = open("contacto2",O_WRONLY,0666);
-                        write(fd1,"Pending\n",8);
-                        close(fd1);
+                    mkfifo("pending",0666);
+                    int fd1 = open("pending",O_WRONLY);
+                    write(fd1,"Pending\n",8);
+                    close(fd1);
+                    
+
+                    for(int per = 1;per==0;per = permissao(i-3 ,transformacoes+3)){
+                        
                         sleep(1);
                         
                     }
@@ -88,19 +90,22 @@ int main (int argc, char *argv[]){
 
                     
                     //printf("pipe closed\n");
-                    mkfifo("contacto2",0666);
-                    int fd3 = open("contacto2",O_WRONLY,0666);
-                    write(fd3,"Processing\n",11);
-                    close(fd3);
+                    mkfifo("processing",0666);
+
+                    fd1 = open("processing",O_WRONLY);
+                    write(fd1,"Processing\n",11);
+                    close(fd1);
+                    
                     aumentarConf(i-3,transformacoes+3);
                     
                     procfile(i-1,transformacoes+1,id);
 
                     diminuirConf(i-3,transformacoes +3);
-                    mkfifo("contacto2",0666);
-                    int fd2 = open("contacto2",O_WRONLY,0666);
-                    write(fd2,"Concluded\n",10);
-                    close(fd2);
+                    
+                    fd1 = open("concluded",O_WRONLY);
+                    write(fd1,"Concluded\n",10);
+                    close(fd1);
+                    
                     
                     break;
                 default:
@@ -108,8 +113,9 @@ int main (int argc, char *argv[]){
                     break;
             }
         }
-        line[0] = '\0';
         
+        
+        memset(line,0,strlen(line));        
         
     }
 
