@@ -7,15 +7,23 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-struct fila
+//TODO prioridade
+typedef struct Processos* processos;
+typedef struct processo processo;
+struct processo
 {
     int id ;
     int prioridade;
-    char* transformacoes[7];
+    char** transformacoes; //char* transformacoes[9]
     int n_transformacoes;
-    char *arquivo_destino;
-    char *arquivo_fonte;
+    int procfile ;
 };
+
+struct Processos {
+    struct processo data;
+    struct node* next;
+};
+//struct node node;
 
 //Parar de usar variaveis globais ?
 int bcompress_e = 0;
@@ -36,17 +44,25 @@ int nopM = 0;
 
 void alteraglobal(char* var,char* num);
 int ler_arquivo(char *arquivo);
-int procfile(int argc,char *argv[], int ed);
+int procfile(int argc,char *argv[]);
 void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(int n_transformacoes,char* transformacoes[]);
-int status(int ed);
+int status(processos exe);
 int permissao (int n_transformacoes,char* transformacoes[] );
+int addFila(processos fila,struct processo p);
+int removeFila(processos fila,struct processo p);
+int checkFila(processos exec, processos fila);
 
-int main (int argc, char *argv[]){   
+
+int main (int argc, char *argv[])
+{
     int id = 0;
     ler_arquivo(argv[1]);
-    
-    while (1){
+    processos fila = NULL;
+    processos exec = NULL;
+
+    while (1)
+    {
         // tem que criar um FIFO cada ciclo de modo , pronto para ser lido por cada execucao de sdstore
         //colocar indenficador para nao fazer varios filhos
         mkfifo("contacto",0666);
@@ -57,68 +73,145 @@ int main (int argc, char *argv[]){
         unlink("contacto");
         //printf("%s\n",line);
         
-        if (!fork()){       
-            
-            int i = 0;
+        if (!fork())
+        {
+            processo p;
+            int es = 0;
+            for(int aux = 0;line[aux] != '\0';aux++) {
+                if(line[aux] == ' ') es++;
+            }
+            es--;
+
+            char** t = malloc(sizeof (char*)*es);
+
+            p.n_transformacoes = es;
+
+            es = 0;
+
             char* resto;
             char* token;
-            //aqui
-            char *transformacoes[10];
             for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
                 //printf("%s\n",token);
-                transformacoes[i] = malloc(sizeof(token));
-                strcpy(transformacoes[i],token);
-                //printf("transF : %s\n",transformacoes[i]);
-                i++;
+                if(es == 0) {
+                    p.prioridade = atoi(token);
+                }
+                else if(es == 1) {
+                    if(strcmp(token,"proc-file")) {
+                        p.procfile = 1;
+                    }else p.procfile = 0;
+                }
+                else {
+                    t[es] = malloc(sizeof(token));
+                    strcpy(t[es], token);
+                    //printf("transF : %s\n",transformacoes[i]);
+                }
+                es++;
             }
 
-            //Tem q ler as transformações adicionar para o array transformações e atualizar o numero de transformacoes do pedido do cliente
-            switch(strcmp(transformacoes[0],"proc-file")){
-                case 0:
-                    mkfifo("pending",0666);
-                    int fd1 = open("pending",O_WRONLY);
-                    write(fd1,"Pending\n",8);
-                    close(fd1);
-                    
+            p.id = id;
+            p.transformacoes = t;
 
-                    for(int per = 1;per==0;per = permissao(i-3 ,transformacoes+3)){
-                        
-                        sleep(1);
-                        
-                    }
-                    //printf("pipe open\n");
+            addFila(fila,p);
 
-                    
-                    //printf("pipe closed\n");
-                    mkfifo("processing",0666);
-
-                    fd1 = open("processing",O_WRONLY);
-                    write(fd1,"Processing\n",11);
-                    close(fd1);
-                    
-                    aumentarConf(i-3,transformacoes+3);
-                    
-                    procfile(i-1,transformacoes+1,id);
-
-                    diminuirConf(i-3,transformacoes +3);
-                    
-                    fd1 = open("concluded",O_WRONLY);
-                    write(fd1,"Concluded\n",10);
-                    close(fd1);
-                    
-                    
-                    break;
-                default:
-                    status(id);
-                    break;
             }
+        checkFila(fila,exec);
+
+        memset(line,0,strlen(line));
         }
         
-        
-        memset(line,0,strlen(line));        
-        
-    }
 
+
+        
+}
+
+
+
+int executa(struct processo p)
+{
+
+    //printf("pipe open\n");
+    //printf("pipe closed\n");
+
+    int fd1 = open("contacto2",O_WRONLY);
+    write(fd1,"Processing\n",11);
+
+    //TODO talvez tenha q concertar o numero de transformcoes e o array das transformacoes
+    procfile(p.n_transformacoes,p.transformacoes);
+    diminuirConf(p.n_transformacoes,p.transformacoes);
+
+    fd1 = open("contacto2",O_WRONLY);
+    write(fd1,"Concluded\n",10);
+    close(fd1);
+}
+
+int checkFila(processos exec, processos fila)
+{
+    processos corre = fila;
+
+    for (;  corre!=NULL ; corre =corre->next)
+    {
+        struct processo dados = corre->data;
+        if(dados.procfile == 1)
+        {
+            if (permissao(dados.n_transformacoes,dados.transformacoes))
+            {
+                aumentarConf(dados.n_transformacoes,dados.transformacoes);
+                addFila(exec,dados);
+                removeFila(corre,dados);
+                if (!fork())
+                {
+                    executa(dados);
+                }
+                removeFila(exec,dados);
+                return 1;
+            }
+        }
+        else
+        {
+            status(exec);
+        }
+    }
+    return 0;
+}
+
+
+int addFila(processos fila,struct processo p)
+{
+    processos aux = fila;
+    for (aux; aux!=NULL ; aux = aux->next)
+    {
+        struct processo dados = aux->data;
+        if(p.prioridade > dados.prioridade)
+        {
+            processos ant = aux;
+            processos new = malloc(sizeof(processos));
+            new->data = p;
+            new->next = aux;
+            ant->next = new;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int removeFila(processos fila,struct processo p)
+{
+    processos aux = fila;
+    processos ant = NULL;
+    if(aux->data.id == p.id){
+        aux = aux -> next;
+        free(aux);
+    }
+    while (aux != NULL) {
+        ant = aux;
+        aux = aux->next;
+        if(aux->data.id == p.id){
+            ant -> next = aux->next;
+            free(aux);
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void alteraglobal(char* var,char* num)
@@ -320,7 +413,7 @@ void diminuirConf(int n_transformacoes,char* transformacoes[])
     }
 }
 
-int status(int ed)
+int status(processos exec)
 {
     // char arquivo_cliente[13];
     // strcpy(arquivo_cliente,"/tmp/cliente");
@@ -348,7 +441,8 @@ int status(int ed)
 }
 
 //Adicionei a variavel ed, q é o id do processo , pois será imporante para comunicar com o cliente q tem o id o status do processo
-int procfile(int argc,char *argv[], int ed){
+int procfile(int argc,char *argv[])
+{
     
     //criar n-2 pipes para os filhos
     int p[argc-2][2];
