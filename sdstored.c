@@ -21,7 +21,7 @@ struct processo
 
 struct Processos {
     struct processo data;
-    struct node* next;
+    processos next;
 };
 //struct node node;
 
@@ -76,43 +76,51 @@ int main (int argc, char *argv[])
         if (!fork())
         {
             processo p;
-            int es = 0;
+            int es = -1;
             for(int aux = 0;line[aux] != '\0';aux++) {
                 if(line[aux] == ' ') es++;
             }
-            es--;
-
+                
             char** t = malloc(sizeof (char*)*es);
 
             p.n_transformacoes = es;
 
+            printf("%d - n.transformacoes\n",p.n_transformacoes);
             es = 0;
-
             char* resto;
             char* token;
             for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
                 //printf("%s\n",token);
-                if(es == 0) {
+                if(es == 0)
+                {
+
                     p.prioridade = atoi(token);
+                    printf("%d - n.prioridade\n",p.prioridade);
                 }
-                else if(es == 1) {
-                    if(strcmp(token,"proc-file")) {
+                else if(es == 1)
+                {
+                    if(strcmp(token,"proc-file"))
+                    {
+                        printf("%d - n.procfile\n",p.prioridade);
                         p.procfile = 1;
-                    }else p.procfile = 0;
+                    }
+                    else p.procfile = 0;
                 }
-                else {
-                    t[es] = malloc(sizeof(token));
-                    strcpy(t[es], token);
-                    //printf("transF : %s\n",transformacoes[i]);
+                else
+                {
+                    t[es-2] = malloc(sizeof(token));
+                    strcpy(t[es-2], token);
                 }
                 es++;
             }
 
             p.id = id;
             p.transformacoes = t;
-
+            for (int i = 0 ; i < es ; i ++)
+            {
+                printf("%s - transformacoes\n",p.transformacoes[i]);
+            }
             addFila(fila,p);
-
             }
         checkFila(fila,exec);
 

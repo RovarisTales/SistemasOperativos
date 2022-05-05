@@ -41,7 +41,7 @@ int main (int argc, char *argv[]){
     //TODO while que espera o concluded e cria um FIFO para o processo.
     //printf("pipe closed\n");
     
-
+/*
     char op[15];
     int fd1 = open("contacto2",O_RDONLY);
     for(int x = 0;x!= 3;x++){
@@ -70,6 +70,7 @@ int main (int argc, char *argv[]){
     // close(p3);
     // printf("%s\n",op);
     // unlink("concluded");
+    */
     return 0;
 
 }
