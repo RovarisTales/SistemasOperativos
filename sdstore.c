@@ -41,40 +41,36 @@ int main (int argc, char *argv[]){
     //TODO while que espera o concluded e cria um FIFO para o processo.
     //printf("pipe closed\n");
     
-
+/*
     char op[15];
-    /*
+    int fd1 = open("contacto2",O_RDONLY);
     for(int x = 0;x!= 3;x++){
-        printf("%d ciclo\n",x);
-        if(!fork()){
-        int fd1 = open("contacto2",O_RDONLY);
+        //printf("%d ciclo\n",x);
         read(fd1,op,sizeof(op));
-        close(fd1);
         printf("%s",op);
         memset(op,0,strlen(op));
-        _exit(0);
-        }
-        wait(NULL);
     }
-    */
-    int p1 = open("pending",O_RDONLY);
-    read(p1,op,15);
-    close(p1);
-    printf("%s\n",op);
-    unlink("pending");
+    close(fd1);
+
+    // int p1 = open("pending",O_RDONLY);
+    // read(p1,op,15);
+    // close(p1);
+    // printf("%s\n",op);
+    // unlink("pending");
     
-    memset(op,0,strlen(op));
-    int p2 = open("processing",O_RDONLY);
-    read(p2,op,15);
-    close(p2);
-    printf("%s\n",op);
-    unlink("processing");
-    memset(op,0,strlen(op));
-    int p3 = open("concluded",O_RDONLY);
-    read(p3,op,15);
-    close(p3);
-    printf("%s\n",op);
-    unlink("concluded");
+    // memset(op,0,strlen(op));
+    // int p2 = open("processing",O_RDONLY);
+    // read(p2,op,15);
+    // close(p2);
+    // printf("%s\n",op);
+    // unlink("processing");
+    // memset(op,0,strlen(op));
+    // int p3 = open("concluded",O_RDONLY);
+    // read(p3,op,15);
+    // close(p3);
+    // printf("%s\n",op);
+    // unlink("concluded");
+    */
     return 0;
 
 }
