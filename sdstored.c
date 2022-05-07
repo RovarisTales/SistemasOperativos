@@ -16,7 +16,7 @@
 //O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 //O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 //TODO prioridade
-typedef struct Processos* processos;
+typedef struct Processos processos;
 typedef struct processo processo;
 struct processo
 {
@@ -28,8 +28,8 @@ struct processo
 };
 
 struct Processos {
-    struct processo data;
-    processos next;
+    processo data;
+    processos *next;
 };
 //struct node node;
 
@@ -55,19 +55,19 @@ int ler_arquivo(char *arquivo);
 int procfile(int argc,char *argv[]);
 void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(int n_transformacoes,char* transformacoes[]);
-int status(processos exe);
+int status(processos *exec);
 int permissao (int n_transformacoes,char* transformacoes[] );
-int addFila(processos fila,struct processo p);
-int removeFila(processos fila,struct processo p);
-int checkFila(processos exec, processos fila);
+int addFila(processos *fila,struct processo p);
+int removeFila(processos *fila,struct processo p);
+int checkFila(processos *exec, processos *fila);
 
 
 int main (int argc, char *argv[])
 {
     int id = 0;
     ler_arquivo(argv[1]);
-    processos fila = NULL;
-    processos exec = NULL;
+    processos *fila = NULL;
+    processos *exec = NULL;
 
 
     while (1)
@@ -130,9 +130,7 @@ int main (int argc, char *argv[])
             //printf("oiiiiiii\n");
             }
         sleep(1);
-        printf("checkfila antes\n");
         int b = checkFila(fila,exec);
-        printf("%d\n",b);
         memset(line,0,strlen(line));
         }
         
@@ -161,16 +159,16 @@ int executa(struct processo p)
     close(fd1);
 }
 
-int checkFila(processos exec, processos fila)
+int checkFila(processos *exec, processos *fila)
 {
-    printf("Oii\n");
-    processos corre = fila;
-    struct processo dados = fila->data;
-    printf("%d - n.prioridades\n",dados.prioridade);
-    printf("%d - n.transformacoes\n",dados.n_transformacoes);
-    printf("%d - n.procfile\n",dados.prioridade);
-    for (int i = 0 ; i < dados.n_transformacoes ; i ++){
-        printf("%s - transformacoes\n",dados.transformacoes[i]);
+    processos *corre = fila;
+
+    if (fila == NULL) {
+        printf("Hello\n");
+    }
+    else
+    {
+        printf("Praia\n");
     }
     for (;  corre!=NULL ; corre =corre->next)
     {
@@ -187,7 +185,7 @@ int checkFila(processos exec, processos fila)
             {
                 aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
                 addFila(exec,dados);
-                removeFila(corre,dados);
+                //removeFila(corre,dados);
                 if (!fork())
                 {
                     executa(dados);
@@ -206,24 +204,29 @@ int checkFila(processos exec, processos fila)
 }
 
 
-int addFila(processos fila,struct processo p)
+int addFila(processos *fila, processo p)
 {
-    printf("OI\n");
-    processos aux = fila;
     if (fila == NULL)
     {
-        fila = malloc(sizeof(processos));
-        fila->data = p;
-        fila->next = NULL;
+        processos *new = malloc (sizeof (processos));
+        new->data = p;
+        new->next = NULL;
+        printf("0i\n");
+        fila = new;
     }
     else
     {
-        for (aux; aux != NULL; aux = aux->next) {
+        processos *aux = fila;
+        printf("Beach\n");
+        int i = 0;
+        for (; aux != NULL; aux = aux->next)
+        {
             struct processo dados = aux->data;
             if (p.prioridade > dados.prioridade) {
-                processos ant = aux;
-                processos new = malloc(sizeof(processos));
+                processos *ant = aux;
+                processos *new = malloc(sizeof(processos));
                 new->data = p;
+                struct processo dados = new->data;
                 new->next = aux;
                 ant->next = new;
                 return 1;
@@ -233,10 +236,10 @@ int addFila(processos fila,struct processo p)
     return 0;
 }
 
-int removeFila(processos fila,struct processo p)
+int removeFila(processos *fila,struct processo p)
 {
-    processos aux = fila;
-    processos ant = NULL;
+    processos *aux = fila;
+    processos *ant = NULL;
     if(aux->data.id == p.id){
         aux = aux -> next;
         free(aux);
@@ -452,7 +455,7 @@ void diminuirConf(int n_transformacoes,char* transformacoes[])
     }
 }
 
-int status(processos exec)
+int status(processos *exec)
 {
     // char arquivo_cliente[13];
     // strcpy(arquivo_cliente,"/tmp/cliente");
