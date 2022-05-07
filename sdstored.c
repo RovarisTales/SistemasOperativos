@@ -57,9 +57,9 @@ void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(int n_transformacoes,char* transformacoes[]);
 int status(processos *exec);
 int permissao (int n_transformacoes,char* transformacoes[] );
-int addFila(processos *fila,struct processo p);
-int removeFila(processos *fila,struct processo p);
-int checkFila(processos *exec, processos *fila);
+int addFila(processos **fila,struct processo p);
+int removeFila(processos **fila,struct processo p);
+int checkFila(processos **exec, processos **fila);
 
 
 int main (int argc, char *argv[])
@@ -126,16 +126,13 @@ int main (int argc, char *argv[])
             //    printf("%s - transformacoes\n",p.transformacoes[i]);
             //}
             //printf("oi\n");
-            addFila(fila,p);
+            addFila(&fila,p);
             //printf("oiiiiiii\n");
             }
         sleep(1);
-        int b = checkFila(fila,exec);
+        int b = checkFila(&fila,&exec);
         memset(line,0,strlen(line));
         }
-        
-
-
         
 }
 
@@ -159,9 +156,9 @@ int executa(struct processo p)
     close(fd1);
 }
 
-int checkFila(processos *exec, processos *fila)
+int checkFila(processos **exec, processos **fila)
 {
-    processos *corre = fila;
+    processos **corre = fila;
 
     if (fila == NULL) {
         printf("Hello\n");
@@ -204,7 +201,7 @@ int checkFila(processos *exec, processos *fila)
 }
 
 
-int addFila(processos *fila, processo p)
+int addFila(processos **fila, processo p)
 {
     if (fila == NULL)
     {
@@ -236,7 +233,7 @@ int addFila(processos *fila, processo p)
     return 0;
 }
 
-int removeFila(processos *fila,struct processo p)
+int removeFila(processos **fila,struct processo p)
 {
     processos *aux = fila;
     processos *ant = NULL;
