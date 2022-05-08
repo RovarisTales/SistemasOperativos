@@ -6,16 +6,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-//O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-//O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-//O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-//O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-//O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-//O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-//O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-//O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-//O PROBLEMA É COM OS POINTERS AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-//TODO prioridade
 typedef struct Processos processos;
 typedef struct processo processo;
 struct processo
@@ -32,7 +22,6 @@ struct Processos {
     processos *next;
 };
 //struct node node;
-
 //Parar de usar variaveis globais ?
 int bcompress_e = 0;
 int bdecompress_e = 0;
@@ -55,15 +44,112 @@ int ler_arquivo(char *arquivo);
 int procfile(int argc,char *argv[]);
 void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(int n_transformacoes,char* transformacoes[]);
-int status(processos *exec);
+int status();
 int permissao (int n_transformacoes,char* transformacoes[] );
-int addFila(processos **fila,struct processo p);
-int removeFila(processos **fila,struct processo p);
-int checkFila(processos **exec, processos **fila);
+int addFila(struct processo p);
+int removeFila(struct processo p);
+int checkFila();
 
+processos *fila = NULL;
+processos *exec = NULL;
 
+void printLista()
+{
+    if (fila != NULL)
+    {
+        processos * corre = fila;
+        for (; corre != NULL; corre = corre->next) {
+            struct processo dados = corre->data;
+            printf("%d - n.prioridades\n", dados.prioridade);
+            printf("%d - n.transformacoes\n", dados.n_transformacoes);
+            printf("%d - n.procfile\n", dados.prioridade);
+            for (int i = 0; i < dados.n_transformacoes; i++) {
+                printf("%s - transformacoes\n", dados.transformacoes[i]);
+            }
+        }
+    }
+    else
+    {
+        printf("FILA NULL\n");
+    }
+
+}
+
+int addFila(processo p)
+{
+    if (fila == NULL)
+    {
+        processos *new = malloc (sizeof (processos));
+        new->data = p;
+        new->next = NULL;
+        printf("0i\n");
+        fila = new;
+    }
+    else
+    {
+        processos *aux = fila;
+        printf("Beach\n");
+        for (; aux != NULL; aux = aux->next)
+        {
+            struct processo dados = aux->data;
+            if (p.prioridade >= dados.prioridade)
+            {
+                processos *ant = aux;
+                processos *new = malloc(sizeof(processos));
+                new->data = p;
+                new->next = aux;
+                ant->next = new;
+                return 1;
+            }
+        }
+        processos *new = malloc(sizeof(processos));
+        new->data = p;
+        new->next = NULL;
+        aux->next = new;
+        return 1;
+
+    }
+    return 0;
+}
+/*
+int removeFila(struct processo p)
+{
+    processos *aux = fila;
+    processos *ant = NULL;
+    if(aux->data.id == p.id){
+        aux = aux -> next;
+        free(aux);
+    }
+    while (aux != NULL) {
+        ant = aux;
+        aux = aux->next;
+        if(aux->data.id == p.id){
+            ant -> next = aux->next;
+            free(aux);
+            return 1;
+        }
+    }
+    return 0;
+}
+ */
 int main (int argc, char *argv[])
 {
+
+    struct processo p ;
+    p.prioridade = 3;
+    p.n_transformacoes = 0;
+    p.id = 2;
+    p.procfile = 0;
+    struct processo l ;
+    l.prioridade = 2;
+    l.n_transformacoes = 0;
+    l.id = 1;
+    l.procfile = 0;
+    printLista();
+    addFila(p);
+    addFila(l);
+    printLista();
+    /*
     int id = 0;
     ler_arquivo(argv[1]);
     processos *fila = NULL;
@@ -133,9 +219,54 @@ int main (int argc, char *argv[])
         int b = checkFila(&fila,&exec);
         memset(line,0,strlen(line));
         }
-        
+      */
+}
+/*
+int checkFila()
+{
+    processos *corre = fila;
+
+    if (fila == NULL) {
+        printf("Hello\n");
+    }
+    else
+    {
+        for (;  corre!=NULL ; corre =corre->next)
+        {
+            struct processo dados = corre->data;
+            printf("%d - n.prioridades\n",dados.prioridade);
+            printf("%d - n.transformacoes\n",dados.n_transformacoes);
+            printf("%d - n.procfile\n",dados.prioridade);
+            for (int i = 0 ; i < dados.n_transformacoes ; i ++){
+                printf("%s - transformacoes\n",dados.transformacoes[i]);
+            }
+            /*
+            if(dados.procfile == 1)
+            {
+                if (permissao(dados.n_transformacoes-2,dados.transformacoes+2))
+                {
+                    aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
+                    addFila(exec,dados);
+                    //removeFila(corre,dados);
+                    if (!fork())
+                    {
+                        executa(dados);
+                        removeFila(exec,dados);
+                    }
+
+                    return 1;
+                }
+            }
+            else
+            {
+                status(exec);
+            }
+        }
+    }
 }
 
+*/
+/*
 
 
 int executa(struct processo p)
@@ -156,102 +287,7 @@ int executa(struct processo p)
     close(fd1);
 }
 
-int checkFila(processos **exec, processos **fila)
-{
-    processos **corre = fila;
 
-    if (fila == NULL) {
-        printf("Hello\n");
-    }
-    else
-    {
-        printf("Praia\n");
-    }
-    for (;  corre!=NULL ; corre =corre->next)
-    {
-        struct processo dados = corre->data;
-        printf("%d - n.prioridades\n",dados.prioridade);
-        printf("%d - n.transformacoes\n",dados.n_transformacoes);
-        printf("%d - n.procfile\n",dados.prioridade);
-        for (int i = 0 ; i < dados.n_transformacoes ; i ++){
-            printf("%s - transformacoes\n",dados.transformacoes[i]);
-        }
-        if(dados.procfile == 1)
-        {
-            if (permissao(dados.n_transformacoes-2,dados.transformacoes+2))
-            {
-                aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
-                addFila(exec,dados);
-                //removeFila(corre,dados);
-                if (!fork())
-                {
-                    executa(dados);
-                    removeFila(exec,dados);
-                }
-
-                return 1;
-            }
-        }
-        else
-        {
-            status(exec);
-        }
-    }
-    return 0;
-}
-
-
-int addFila(processos **fila, processo p)
-{
-    if (fila == NULL)
-    {
-        processos *new = malloc (sizeof (processos));
-        new->data = p;
-        new->next = NULL;
-        printf("0i\n");
-        fila = new;
-    }
-    else
-    {
-        processos *aux = fila;
-        printf("Beach\n");
-        int i = 0;
-        for (; aux != NULL; aux = aux->next)
-        {
-            struct processo dados = aux->data;
-            if (p.prioridade > dados.prioridade) {
-                processos *ant = aux;
-                processos *new = malloc(sizeof(processos));
-                new->data = p;
-                struct processo dados = new->data;
-                new->next = aux;
-                ant->next = new;
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
-int removeFila(processos **fila,struct processo p)
-{
-    processos *aux = fila;
-    processos *ant = NULL;
-    if(aux->data.id == p.id){
-        aux = aux -> next;
-        free(aux);
-    }
-    while (aux != NULL) {
-        ant = aux;
-        aux = aux->next;
-        if(aux->data.id == p.id){
-            ant -> next = aux->next;
-            free(aux);
-            return 1;
-        }
-    }
-    return 0;
-}
 
 void alteraglobal(char* var,char* num)
 {
@@ -598,3 +634,4 @@ int procfile(int argc,char *argv[])
 
 
 
+*/
