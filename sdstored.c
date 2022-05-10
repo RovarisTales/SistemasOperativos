@@ -62,7 +62,9 @@ void printLista()
             struct processo dados = corre->data;
             printf("%d - n.prioridades\n", dados.prioridade);
             printf("%d - n.transformacoes\n", dados.n_transformacoes);
-            printf("%d - n.procfile\n", dados.prioridade);
+            printf("%d - n.procfile\n", dados.procfile);
+            printf("%d - n.id\n", dados.id);
+
             for (int i = 0; i < dados.n_transformacoes; i++) {
                 printf("%s - transformacoes\n", dados.transformacoes[i]);
             }
@@ -87,11 +89,20 @@ int addFila(processo p)
     }
     else
     {
-        processos *aux = fila;
         printf("Beach\n");
+        struct processo dados = fila->data;
+        if (p.prioridade >= dados.prioridade)
+        {
+            processos *new = malloc(sizeof(processos));
+            new->data = p;
+            new->next = fila;
+            fila = new;
+            return 1;
+        }
+        processos *aux = fila->next;
         for (; aux != NULL; aux = aux->next)
         {
-            struct processo dados = aux->data;
+            dados = aux->data;
             if (p.prioridade >= dados.prioridade)
             {
                 processos *ant = aux;
@@ -105,33 +116,17 @@ int addFila(processo p)
         processos *new = malloc(sizeof(processos));
         new->data = p;
         new->next = NULL;
-        aux->next = new;
+        aux=new;
         return 1;
 
     }
     return 0;
 }
-/*
-int removeFila(struct processo p)
-{
-    processos *aux = fila;
-    processos *ant = NULL;
-    if(aux->data.id == p.id){
-        aux = aux -> next;
-        free(aux);
-    }
-    while (aux != NULL) {
-        ant = aux;
-        aux = aux->next;
-        if(aux->data.id == p.id){
-            ant -> next = aux->next;
-            free(aux);
-            return 1;
-        }
-    }
-    return 0;
-}
- */
+
+
+
+
+
 int main (int argc, char *argv[])
 {
 
@@ -145,9 +140,21 @@ int main (int argc, char *argv[])
     l.n_transformacoes = 0;
     l.id = 1;
     l.procfile = 0;
-    printLista();
+    struct processo g ;
+    g.prioridade = 4;
+    g.n_transformacoes = 0;
+    g.id = 3;
+    g.procfile = 0;
+    struct processo h ;
+    h.prioridade = 3;
+    h.n_transformacoes = 0;
+    h.id = 4;
+    h.procfile = 0;
     addFila(p);
+    printLista();
     addFila(l);
+    addFila(g);
+    addFila(h);
     printLista();
     /*
     int id = 0;
