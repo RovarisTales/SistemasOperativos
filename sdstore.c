@@ -52,9 +52,10 @@ int main (int argc, char *argv[]){
     char op[15];
     char c1[15] = "contacto";
     strcat(c1,qualid);
+    printf("%s\n",c1);
     mkfifo(c1,0666);
     int fd2 = open(c1,O_RDONLY);
-    for(int x = 0;x!= 1;x++){
+    for(int x = 0;x!= 3;x++){
         //printf("%d ciclo\n",x);
         read(fd2,op,sizeof(op));
         printf("%s",op);

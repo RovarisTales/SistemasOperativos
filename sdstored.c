@@ -48,8 +48,8 @@ int status();
 int permissao (int n_transformacoes,char* transformacoes[] );
 int addFila(processos* fila,struct processo p);
 int removeFila(processos* fila,struct processo p);
-int checkFila(processos* fila,processos exec);
-int executa(struct processo p);
+int checkFila(processos* fila,processos exec,char* c);
+int executa(struct processo p,char* c);
 //processos fila = NULL;
 //processos exec = NULL;
 
@@ -185,13 +185,19 @@ int main (int argc, char *argv[]){
         read(fd,line,128);
         close(fd);
         int fd1 = open("id",O_WRONLY);
-        char c = id + '0';
-        printf("%c\n",c);
-        write(fd1,&c,sizeof(c));
+        char bb = id + '0';
+        char c [2];
+        c[0]= bb;
+        c[1] = '\0';
+        printf("%s\n",c);
+        write(fd1,c,sizeof(c));
         unlink("id");
         //printf("%s\n",line);
         char c1[15] = "contacto";
-        strcat(c1,&c);
+        strcat(c1,c);
+        
+        printf("%s\n",c1);
+
         int fd2 = open(c1,O_WRONLY);
         write(fd2,"Pending\n",9);
         //if (!fork()){
@@ -247,7 +253,7 @@ int main (int argc, char *argv[]){
 
         //}
         //wait(NULL);
-        checkFila(&fila,exec);
+        checkFila(&fila,exec,c);
         //printf("executaacabou\n");
         memset(line,0,strlen(line));
         }
@@ -276,7 +282,7 @@ int removeFila(processos* fila,struct processo p){
     return 0;
 }
 
-int checkFila(processos* fila,processos exec){
+int checkFila(processos* fila,processos exec,char* c){
     processos corre = *fila;
 
     if (*fila == NULL) {
@@ -302,9 +308,11 @@ int checkFila(processos* fila,processos exec){
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
                     addFila(&exec,dados);
                     removeFila(&corre,dados);
+                    int fd = open(c,O_WRONLY);
+                    write(fd,"Processing\n",12);
                     if (!fork())
                     {
-                        executa(dados);
+                        executa(dados,c);
                         
                         _exit(1);
                     }
@@ -333,7 +341,7 @@ int checkFila(processos* fila,processos exec){
 
 
 
-int executa(struct processo p)
+int executa(struct processo p,char* c)
 {
 
     //printf("pipe open\n");
@@ -346,7 +354,7 @@ int executa(struct processo p)
     procfile(p.n_transformacoes,p.transformacoes);
     diminuirConf(p.n_transformacoes-2,p.transformacoes+2);
 
-    fd1 = open("contacto",O_WRONLY);
+    fd1 = open(c,O_WRONLY);
     write(fd1,"Concluded\n",10);
     close(fd1);
     return 1;
