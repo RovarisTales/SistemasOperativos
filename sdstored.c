@@ -178,66 +178,70 @@ int main (int argc, char *argv[]){
     //processos *exec = NULL;
 
 
-    while (1)
-    {
+    while (1){
         mkfifo("contacto",0666);
         int fd = open("contacto",O_RDONLY,0666);
         char line[128];
         read(fd,line,128);
         close(fd);
-        sleep(1);
+        int fd1 = open("id",O_WRONLY);
+        char c = id + '0';
+        printf("%c\n",c);
+        write(fd1,&c,sizeof(c));
+        unlink("id");
         //printf("%s\n",line);
-        
+        char c1[15] = "contacto";
+        strcat(c1,&c);
+        int fd2 = open(c1,O_WRONLY);
+        write(fd2,"Pending\n",9);
         //if (!fork()){
-            processo p;
-            int es = -1;
-            for(int aux = 0;line[aux] != '\0';aux++) {
-                if(line[aux] == ' ') es++;
-            }
-            char** t = malloc(sizeof (char*)*es);
+        processo p;
+        int es = -1;
+        for(int aux = 0;line[aux] != '\0';aux++) {
+            if(line[aux] == ' ') es++;
+        }
+        char** t = malloc(sizeof (char*)*es);
 
-            p.n_transformacoes = es;
+        p.n_transformacoes = es;
 
             //printf("%d - n.transformacoes\n",p.n_transformacoes);
-            es = 0;
-            char* resto;
-            char* token;
-            for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
-                //printf("%s\n",token);
-                //printf("%d\n",es);
-                if(es == 0)
-                {
+        es = 0;
+        char* resto;
+        char* token;
+        for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
+            //printf("%s\n",token);
+            //printf("%d\n",es);
+            if(es == 0){
 
-                    p.prioridade = atoi(token);
-                    //printf("%d - n.prioridade\n",p.prioridade);
-                }
-                else if(es == 1)
+                p.prioridade = atoi(token);
+                //printf("%d - n.prioridade\n",p.prioridade);
+            }
+            else if(es == 1)
+            {
+                if(!strcmp(token,"proc-file"))
                 {
-                    if(!strcmp(token,"proc-file"))
-                    {
-                        //printf("%d - n.procfile\n",p.procfile);
-                        p.procfile = 1;
-                    }
-                    
-                    else p.procfile = 0;
-                    
+                    //printf("%d - n.procfile\n",p.procfile);
+                    p.procfile = 1;
                 }
-
-                else 
-                {
-                    t[es-2] = malloc(sizeof(token));
-                    strcpy(t[es-2], token);
-                }
-                es++;
+                    
+                else p.procfile = 0;
+                    
             }
 
-            p.id = id;
-            p.transformacoes = t;
+            else {
+                t[es-2] = malloc(sizeof(token));
+                strcpy(t[es-2], token);
+            }
+            es++;
+        }
+
+        p.id = id;
+        p.transformacoes = t;
             //for (int i = 0 ; i < p.n_transformacoes ; i ++){
             //    printf("%s - transformacoes\n",p.transformacoes[i]);
             //}
             //printf("oi\n");
-            addFila(&fila,p);
+        addFila(&fila,p);
             //_exit(1);
             //printf("oiiiiiii\n");
 

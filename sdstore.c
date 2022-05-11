@@ -39,19 +39,29 @@ int main (int argc, char *argv[]){
     close(fd);
     buffer[0] = '\0';
     unlink("contacto");
+
+    mkfifo("id",0666);
+    int fd1 = open("id",O_RDONLY);
+    char qualid[4];
+    read(fd1,qualid,4);
+    close(fd1);
     //TODO while que espera o concluded e cria um FIFO para o processo.
     //printf("pipe closed\n");
     
-/*
+
     char op[15];
-    int fd1 = open("contacto2",O_RDONLY);
-    for(int x = 0;x!= 3;x++){
+    char c1[15] = "contacto";
+    strcat(c1,qualid);
+    mkfifo(c1,0666);
+    int fd2 = open(c1,O_RDONLY);
+    for(int x = 0;x!= 1;x++){
         //printf("%d ciclo\n",x);
-        read(fd1,op,sizeof(op));
+        read(fd2,op,sizeof(op));
         printf("%s",op);
         memset(op,0,strlen(op));
     }
     close(fd1);
+    unlink(c1);
 
     // int p1 = open("pending",O_RDONLY);
     // read(p1,op,15);
@@ -71,7 +81,7 @@ int main (int argc, char *argv[]){
     // close(p3);
     // printf("%s\n",op);
     // unlink("concluded");
-    */
+    
     return 0;
 
 }
