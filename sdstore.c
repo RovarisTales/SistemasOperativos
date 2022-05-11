@@ -15,7 +15,8 @@
 // ./sdstore proc-file <priority> samples/file-a outputs/file-a-output bcompress nop gcompress encrypt nop
 
 //TODO Comunicação servidor para o cliente 
-int main (int argc, char *argv[]){
+int main (int argc, char *argv[])
+{
     char buffer[128];
     //sdsdstreijhyase proc-file banan.txt final alt1 alt2
     //argc 6
@@ -53,10 +54,12 @@ int main (int argc, char *argv[]){
     strcat(c1,qualid);
     printf("%s\n",c1);
     mkfifo(c1,0666);
-    int fd2 = open(c1,O_RDONLY);
+    //int fd2 = open(c1,O_RDONLY);
     for(int x = 0;x!= 3;x++){
-        //printf("%d ciclo\n",x);
+        int fd2 = open(c1,O_RDONLY);
+        printf("%d ciclo\n",x);
         read(fd2,op,sizeof(op));
+        close(fd2);
         printf("%s",op);
         memset(op,0,strlen(op));
     }

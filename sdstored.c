@@ -107,36 +107,37 @@ int main (int argc, char *argv[]){
     //processos *exec = NULL;
 
 
-    while (1){
-        mkfifo("contacto",0666);
-        int fd = open("contacto",O_RDONLY,0666);
+    while (1)
+    {
+        mkfifo("contacto", 0666);
+        int fd = open("contacto", O_RDONLY, 0666);
         char line[128];
-        read(fd,line,128);
+        read(fd, line, 128);
         close(fd);
         //unlink("contacto");
-        mkfifo("id",0666);
+        mkfifo("id", 0666);
 
-        int fd1 = open("id",O_WRONLY);
+        int fd1 = open("id", O_WRONLY);
         char bb = id + '0';
-        char c [2];
-        c[0]= bb;
+        char c[2];
+        c[0] = bb;
         c[1] = '\0';
-        printf("%s\n",c);
-        write(fd1,c,sizeof(c));
+        printf("%s\n", c);
+        write(fd1, c, sizeof(c));
 
         //printf("%s\n",line);
         char c1[15] = "contacto";
-        strcat(c1,c);
-        
-        printf("%s\n",c1);
+        strcat(c1, c);
 
-        int fd2 = open(c1,O_WRONLY);
-        write(fd2,"Pending\n",9);
+        printf("%s\n", c1);
+
+        int fd2 = open(c1, O_WRONLY);
+        write(fd2, "Pending\n", 9);
         close(fd2);
 
         processo *p;
         p = malloc(sizeof(processo));
-        if (!fork()) {
+        //if (!fork()) {
             //TODO COLOCAR DENTRO DO FORK E PASSAR O ENDERECO DO PROCESSO
 
             int es = -1;
@@ -178,16 +179,21 @@ int main (int argc, char *argv[]){
             //}
             //printf("oi\n");
             addFila(&fila, p);
-            _exit(1);
+            //printLista(fila);
+            //_exit(1);
             //printf("oiiiiiii\n");
-        }
+        //}
         //}
         //wait(NULL);
-        checkFila(&fila,exec,c);
+        printLista(fila);
+        checkFila(&fila, exec, c);
+
+        printLista(fila);
+        id++;
         //printf("executaacabou\n");
-        memset(line,0,strlen(line));
-        }
-      
+        memset(line, 0, strlen(line));
+        printf("OI\n");
+    }
 }
 
 
@@ -227,7 +233,7 @@ int addFila(processos* fila,processo *p)
     else{
         //printf("Beach\n");
         struct processo dados = (*fila)->data;
-        if (p->prioridade >= dados.prioridade)
+        if (p->prioridade > dados.prioridade)
         {
             processos new = malloc(sizeof(struct Processos));
             new->data = *p;
@@ -279,7 +285,7 @@ int removeFila(processos* fila,struct processo p){
     return 0;
 }
 
-int checkFila(processos* fila,processos exec,char* c){
+int checkFila(processos* fila,processos *exec,char* c){
     processos corre = *fila;
 
     if (*fila == NULL) {
@@ -303,8 +309,10 @@ int checkFila(processos* fila,processos exec,char* c){
                 if (permissao(dados.n_transformacoes-2,dados.transformacoes+2))
                 {
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
-                    addFila(&exec,&dados);
-                    removeFila(&corre,dados);
+                    addFila(exec,&dados);
+                    printf("oi\n");
+                    removeFila(fila,dados);
+
                     int fd = open(c,O_WRONLY);
                     write(fd,"Processing\n",12);
                     close(fd);
@@ -316,7 +324,7 @@ int checkFila(processos* fila,processos exec,char* c){
                     wait(NULL);
                     
                     //printLista(exec);
-                    removeFila(&exec,dados);
+                    removeFila(exec,dados);
                     //printLista(exec);
                     return 1;
                 }
@@ -326,7 +334,7 @@ int checkFila(processos* fila,processos exec,char* c){
                 printLista((*fila));
                 printf("oi\n");
                 //return 1;
-                //status(&exec);
+                status(&exec,dados);
             }
         }
     }
@@ -558,26 +566,31 @@ void diminuirConf(int n_transformacoes,char* transformacoes[])
     }
 }
 
-int status(processos *exec)
+int status(processos *exec,processo p)
 {
-    // char arquivo_cliente[13];
-    // strcpy(arquivo_cliente,"/tmp/cliente");
-    // char numero[1];
-    // itoa(ed,numero,10);
-    // strcat(arquivo_cliente,numero);
+    processos corre = *exec;
 
-    // int fd = open(arquivo_cliente,O_WRONLY);
-    // dup2(fd,STDOUT_FILENO);
-    // int temporario = 0;
-    // //Precisa fazer as tarefas q estao sendo executadas também mas isso precisa de comunicação com o pai q não esta feita ainda
-    // //Ver variaveis globais .
-    // printf("transf nop: %d/%d (running/max)",nop_e,nopM);
-    // printf("transf bcompress: %d/%d (running/max)",bcompress_e,bcompressM);
-    // printf("transf bdecompress: %d/%d (running/max)",bdecompress_e,bdecompressM);
-    // printf("transf gcompress: %d/%d (running/max)",gcompress_e,gcompressM);
-    // printf("transf gdecompress_e: %d/%d (running/max)",gdecompress_e,gdecompressM);
-    // printf("transf encrypt: %d/%d (running/max)",encrypt_e,encryptM);
-    // printf("transf decrypt: %d/%d (running/max)",decrypt_e,decryptM);
+    if (corre != NULL)
+    {
+        char printProc[512];
+        for (;  corre!=NULL ; corre =corre->next)
+        {
+            strcat(corre,"Processo ");
+
+            for (int i = 0 ; )
+
+        }
+    }
+
+    char buff*;
+
+    ("transf nop: %d/%d (running/max)",nop_e,nopM);
+    printf("transf bcompress: %d/%d (running/max)",bcompress_e,bcompressM);
+    printf("transf bdecompress: %d/%d (running/max)",bdecompress_e,bdecompressM);
+    printf("transf gcompress: %d/%d (running/max)",gcompress_e,gcompressM);
+    printf("transf gdecompress_e: %d/%d (running/max)",gdecompress_e,gdecompressM);
+    printf("transf encrypt: %d/%d (running/max)",encrypt_e,encryptM);
+    printf("transf decrypt: %d/%d (running/max)",decrypt_e,decryptM);
 
 
     // close(fd);
