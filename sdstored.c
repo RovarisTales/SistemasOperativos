@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-typedef struct Processos processos;
+typedef struct Processos* processos;
 typedef struct processo processo;
 struct processo
 {
@@ -19,7 +19,7 @@ struct processo
 
 struct Processos {
     processo data;
-    processos *next;
+    processos next;
 };
 //struct node node;
 //Parar de usar variaveis globais ?
@@ -50,14 +50,14 @@ int addFila(struct processo p);
 int removeFila(struct processo p);
 int checkFila();
 
-processos *fila = NULL;
-processos *exec = NULL;
+processos fila = NULL;
+processos exec = NULL;
 
 void printLista()
 {
     if (fila != NULL)
     {
-        processos * corre = fila;
+        processos  corre = fila;
         for (; corre != NULL; corre = corre->next) {
             struct processo dados = corre->data;
             printf("%d - n.prioridades\n", dados.prioridade);
@@ -79,44 +79,42 @@ void printLista()
 
 int addFila(processo p)
 {
-    if (fila == NULL)
-    {
-        processos *new = malloc (sizeof (processos));
+    if (fila == NULL){
+        processos new = malloc (sizeof (struct Processos));
         new->data = p;
         new->next = NULL;
         printf("0i\n");
         fila = new;
     }
-    else
-    {
+    else{
         printf("Beach\n");
         struct processo dados = fila->data;
         if (p.prioridade >= dados.prioridade)
         {
-            processos *new = malloc(sizeof(processos));
+            processos new = malloc(sizeof(struct Processos));
             new->data = p;
             new->next = fila;
             fila = new;
             return 1;
         }
-        processos *aux = fila->next;
-        for (; aux != NULL; aux = aux->next)
-        {
+        processos aux = fila->next;
+        processos ant = fila;
+        for (; aux != NULL; aux = aux->next,ant = aux){
             dados = aux->data;
-            if (p.prioridade >= dados.prioridade)
-            {
-                processos *ant = aux;
-                processos *new = malloc(sizeof(processos));
+            if (p.prioridade >= dados.prioridade){
+                
+                
+                processos new = malloc(sizeof(struct Processos));
                 new->data = p;
                 new->next = aux;
                 ant->next = new;
                 return 1;
             }
         }
-        processos *new = malloc(sizeof(processos));
+        processos new = malloc(sizeof(struct Processos));
         new->data = p;
         new->next = NULL;
-        aux=new;
+        ant->next =new;
         return 1;
 
     }
@@ -127,34 +125,40 @@ int addFila(processo p)
 
 
 
-int main (int argc, char *argv[])
-{
-
+int main (int argc, char *argv[]){
+    printf("struct 1\n");
     struct processo p ;
     p.prioridade = 3;
     p.n_transformacoes = 0;
-    p.id = 2;
+    p.id = 1;
     p.procfile = 0;
+    printf("struct 2\n");
     struct processo l ;
     l.prioridade = 2;
     l.n_transformacoes = 0;
-    l.id = 1;
+    l.id = 2;
     l.procfile = 0;
+    printf("struct 3\n");
     struct processo g ;
     g.prioridade = 4;
     g.n_transformacoes = 0;
     g.id = 3;
     g.procfile = 0;
+    printf("struct 4\n");
     struct processo h ;
     h.prioridade = 3;
     h.n_transformacoes = 0;
     h.id = 4;
     h.procfile = 0;
     addFila(p);
+    printf("print lista11\n");
     printLista();
     addFila(l);
+    printLista();
     addFila(g);
+    printLista();
     addFila(h);
+    printf("print lista2\n");
     printLista();
     /*
     int id = 0;
@@ -247,7 +251,7 @@ int checkFila()
             for (int i = 0 ; i < dados.n_transformacoes ; i ++){
                 printf("%s - transformacoes\n",dados.transformacoes[i]);
             }
-            /*
+            
             if(dados.procfile == 1)
             {
                 if (permissao(dados.n_transformacoes-2,dados.transformacoes+2))
