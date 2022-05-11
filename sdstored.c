@@ -106,10 +106,11 @@ int main (int argc, char *argv[]){
     //processos *fila = NULL;
     //processos *exec = NULL;
 
-
+    mkfifo("contacto", 0666);
     while (1)
     {
-        mkfifo("contacto", 0666);
+        //SIGCHLD
+        //LISTA PIDS PENDENTES
         int fd = open("contacto", O_RDONLY, 0666);
         char line[128];
         read(fd, line, 128);
@@ -135,7 +136,7 @@ int main (int argc, char *argv[]){
         write(fd2, "Pending\n", 9);
         close(fd2);
 
-        processo *p;
+        processo p;
         p = malloc(sizeof(processo));
         //if (!fork()) {
             //TODO COLOCAR DENTRO DO FORK E PASSAR O ENDERECO DO PROCESSO
@@ -146,12 +147,12 @@ int main (int argc, char *argv[]){
             }
             char **t = malloc(sizeof(char *) * es);
 
-            p->n_transformacoes = es;
+            p.n_transformacoes = es;
 
             //printf("%d - n.transformacoes\n",p.n_transformacoes);
             es = 0;
-            char *resto;
-            char *token;
+            char *resto=NULL;
+            char *token=NULL;
             for (token = strtok_r(line, " ", &resto); token != NULL; token = strtok_r(resto, " ", &resto)) {
                 //printf("%s\n",token);
                 //printf("%d\n",es);
