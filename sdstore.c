@@ -40,7 +40,6 @@ int main (int argc, char *argv[]){
     buffer[0] = '\0';
     unlink("contacto");
 
-    mkfifo("id",0666);
     int fd1 = open("id",O_RDONLY);
     char qualid[4];
     read(fd1,qualid,4);

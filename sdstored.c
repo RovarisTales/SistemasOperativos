@@ -46,84 +46,13 @@ void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(int n_transformacoes,char* transformacoes[]);
 int status();
 int permissao (int n_transformacoes,char* transformacoes[] );
-int addFila(processos* fila,struct processo p);
+int addFila(processos* fila,struct processo *p);
 int removeFila(processos* fila,struct processo p);
 int checkFila(processos* fila,processos exec,char* c);
 int executa(struct processo p,char* c);
+void printLista(processos fila);
 //processos fila = NULL;
 //processos exec = NULL;
-
-void printLista(processos fila)
-{
-    if (fila != NULL)
-    {
-        processos  corre = fila;
-        for (; corre != NULL; corre = corre->next) {
-            struct processo dados = corre->data;
-            printf("%d - n.prioridades\n", dados.prioridade);
-            printf("%d - n.transformacoes\n", dados.n_transformacoes);
-            printf("%d - n.procfile\n", dados.procfile);
-            printf("%d - n.id\n", dados.id);
-
-            for (int i = 0; i < dados.n_transformacoes; i++) {
-                printf("%s - transformacoes\n", dados.transformacoes[i]);
-            }
-        }
-    }
-    else
-    {
-        printf("FILA NULL\n");
-    }
-
-}
-
-int addFila(processos* fila,processo p)
-{
-    if (*fila == NULL){
-        processos new = malloc (sizeof (struct Processos));
-        new->data = p;
-        new->next = NULL;
-        //printf("0i\n");
-        (*fila) = new;
-    }
-    else{
-        //printf("Beach\n");
-        struct processo dados = (*fila)->data;
-        if (p.prioridade >= dados.prioridade)
-        {
-            processos new = malloc(sizeof(struct Processos));
-            new->data = p;
-            new->next = (*fila);
-            *fila = new;
-            return 1;
-        }
-        processos aux = (*fila)->next;
-        processos ant = *fila;
-        for (; aux != NULL; aux = aux->next,ant = aux){
-            dados = aux->data;
-            if (p.prioridade >= dados.prioridade){
-                
-                
-                processos new = malloc(sizeof(struct Processos));
-                new->data = p;
-                new->next = aux;
-                ant->next = new;
-                return 1;
-            }
-        }
-        processos new = malloc(sizeof(struct Processos));
-        new->data = p;
-        new->next = NULL;
-        ant->next =new;
-        return 1;
-
-    }
-    return 0;
-}
-
-
-
-
 
 int main (int argc, char *argv[]){
     processos fila = NULL;
@@ -184,6 +113,9 @@ int main (int argc, char *argv[]){
         char line[128];
         read(fd,line,128);
         close(fd);
+        //unlink("contacto");
+        mkfifo("id",0666);
+
         int fd1 = open("id",O_WRONLY);
         char bb = id + '0';
         char c [2];
@@ -191,7 +123,7 @@ int main (int argc, char *argv[]){
         c[1] = '\0';
         printf("%s\n",c);
         write(fd1,c,sizeof(c));
-        unlink("id");
+
         //printf("%s\n",line);
         char c1[15] = "contacto";
         strcat(c1,c);
@@ -200,57 +132,55 @@ int main (int argc, char *argv[]){
 
         int fd2 = open(c1,O_WRONLY);
         write(fd2,"Pending\n",9);
-        //if (!fork()){
-        processo p;
-        int es = -1;
-        for(int aux = 0;line[aux] != '\0';aux++) {
-            if(line[aux] == ' ') es++;
-        }
-        char** t = malloc(sizeof (char*)*es);
+        close(fd2);
 
-        p.n_transformacoes = es;
+        processo *p;
+        p = malloc(sizeof(processo));
+        if (!fork()) {
+            //TODO COLOCAR DENTRO DO FORK E PASSAR O ENDERECO DO PROCESSO
+
+            int es = -1;
+            for (int aux = 0; line[aux] != '\0'; aux++) {
+                if (line[aux] == ' ') es++;
+            }
+            char **t = malloc(sizeof(char *) * es);
+
+            p->n_transformacoes = es;
 
             //printf("%d - n.transformacoes\n",p.n_transformacoes);
-        es = 0;
-        char* resto;
-        char* token;
-        for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
-            //printf("%s\n",token);
-            //printf("%d\n",es);
-            if(es == 0){
+            es = 0;
+            char *resto;
+            char *token;
+            for (token = strtok_r(line, " ", &resto); token != NULL; token = strtok_r(resto, " ", &resto)) {
+                //printf("%s\n",token);
+                //printf("%d\n",es);
+                if (es == 0) {
 
-                p.prioridade = atoi(token);
-                //printf("%d - n.prioridade\n",p.prioridade);
-            }
-            else if(es == 1)
-            {
-                if(!strcmp(token,"proc-file"))
-                {
-                    //printf("%d - n.procfile\n",p.procfile);
-                    p.procfile = 1;
+                    p->prioridade = atoi(token);
+                    //printf("%d - n.prioridade\n",p.prioridade);
+                } else if (es == 1) {
+                    if (!strcmp(token, "proc-file")) {
+                        //printf("%d - n.procfile\n",p.procfile);
+                        p->procfile = 1;
+                    } else p->procfile = 0;
+
+                } else {
+                    t[es - 2] = malloc(sizeof(token));
+                    strcpy(t[es - 2], token);
                 }
-                    
-                else p.procfile = 0;
-                    
+                es++;
             }
 
-            else {
-                t[es-2] = malloc(sizeof(token));
-                strcpy(t[es-2], token);
-            }
-            es++;
-        }
-
-        p.id = id;
-        p.transformacoes = t;
+            p->id = id;
+            p->transformacoes = t;
             //for (int i = 0 ; i < p.n_transformacoes ; i ++){
             //    printf("%s - transformacoes\n",p.transformacoes[i]);
             //}
             //printf("oi\n");
-        addFila(&fila,p);
-            //_exit(1);
+            addFila(&fila, p);
+            _exit(1);
             //printf("oiiiiiii\n");
-
+        }
         //}
         //wait(NULL);
         checkFila(&fila,exec,c);
@@ -259,6 +189,74 @@ int main (int argc, char *argv[]){
         }
       
 }
+
+
+void printLista(processos fila)
+{
+    if (fila != NULL)
+    {
+        processos  corre = fila;
+        for (; corre != NULL; corre = corre->next) {
+            struct processo dados = corre->data;
+            printf("%d - n.prioridades\n", dados.prioridade);
+            printf("%d - n.transformacoes\n", dados.n_transformacoes);
+            printf("%d - n.procfile\n", dados.procfile);
+            printf("%d - n.id\n", dados.id);
+
+            for (int i = 0; i < dados.n_transformacoes; i++) {
+                printf("%s - transformacoes\n", dados.transformacoes[i]);
+            }
+        }
+    }
+    else
+    {
+        printf("FILA NULL\n");
+    }
+
+}
+
+int addFila(processos* fila,processo *p)
+{
+    if (*fila == NULL){
+        processos new = malloc (sizeof (struct Processos));
+        new->data = *p;
+        new->next = NULL;
+        //printf("0i\n");
+        (*fila) = new;
+    }
+    else{
+        //printf("Beach\n");
+        struct processo dados = (*fila)->data;
+        if (p->prioridade >= dados.prioridade)
+        {
+            processos new = malloc(sizeof(struct Processos));
+            new->data = *p;
+            new->next = (*fila);
+            *fila = new;
+            return 1;
+        }
+        processos aux = (*fila)->next;
+        processos ant = *fila;
+        for (; aux != NULL; aux = aux->next,ant = aux){
+            dados = aux->data;
+            if (p->prioridade >= dados.prioridade){
+                processos new = malloc(sizeof(struct Processos));
+                new->data = *p;
+                new->next = aux;
+                ant->next = new;
+                return 1;
+            }
+        }
+        processos new = malloc(sizeof(struct Processos));
+        new->data = *p;
+        new->next = NULL;
+        ant->next =new;
+        return 1;
+
+    }
+    return 0;
+}
+
 int removeFila(processos* fila,struct processo p){
     processos aux = *fila;
     processos ant = NULL;
@@ -267,10 +265,9 @@ int removeFila(processos* fila,struct processo p){
         ant = aux;
         *fila = aux -> next;
         free(ant);
-        
         return 1;
     }
-    while (aux != NULL) {
+    while (aux != NULL){
         ant = aux;
         aux = aux->next;
         if(aux->data.id == p.id){
@@ -306,14 +303,14 @@ int checkFila(processos* fila,processos exec,char* c){
                 if (permissao(dados.n_transformacoes-2,dados.transformacoes+2))
                 {
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
-                    addFila(&exec,dados);
+                    addFila(&exec,&dados);
                     removeFila(&corre,dados);
                     int fd = open(c,O_WRONLY);
                     write(fd,"Processing\n",12);
+                    close(fd);
                     if (!fork())
                     {
                         executa(dados,c);
-                        
                         _exit(1);
                     }
                     wait(NULL);
@@ -347,14 +344,14 @@ int executa(struct processo p,char* c)
     //printf("pipe open\n");
     //printf("pipe closed\n");
 
-    int fd1 = open("contacto",O_WRONLY);
-    write(fd1,"Processing\n",11);
+    //int fd1 = open("contacto",O_WRONLY);
+    //write(fd1,"Processing\n",11);
 
     //TODO talvez tenha q concertar o numero de transformcoes e o array das transformacoes
     procfile(p.n_transformacoes,p.transformacoes);
     diminuirConf(p.n_transformacoes-2,p.transformacoes+2);
 
-    fd1 = open(c,O_WRONLY);
+    int fd1 = open(c,O_WRONLY);
     write(fd1,"Concluded\n",10);
     close(fd1);
     return 1;
