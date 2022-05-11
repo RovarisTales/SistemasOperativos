@@ -38,6 +38,7 @@ int main (int argc, char *argv[]){
     write(fd,buffer,sizeof(buffer));
     close(fd);
     buffer[0] = '\0';
+    unlink("contacto");
     //TODO while que espera o concluded e cria um FIFO para o processo.
     //printf("pipe closed\n");
     

@@ -46,14 +46,14 @@ void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(int n_transformacoes,char* transformacoes[]);
 int status();
 int permissao (int n_transformacoes,char* transformacoes[] );
-int addFila(struct processo p);
-int removeFila(struct processo p);
-int checkFila();
+int addFila(processos* fila,struct processo p);
+int removeFila(processos* fila,struct processo p);
+int checkFila(processos* fila,processos exec);
+int executa(struct processo p);
+//processos fila = NULL;
+//processos exec = NULL;
 
-processos fila = NULL;
-processos exec = NULL;
-
-void printLista()
+void printLista(processos fila)
 {
     if (fila != NULL)
     {
@@ -77,28 +77,28 @@ void printLista()
 
 }
 
-int addFila(processo p)
+int addFila(processos* fila,processo p)
 {
-    if (fila == NULL){
+    if (*fila == NULL){
         processos new = malloc (sizeof (struct Processos));
         new->data = p;
         new->next = NULL;
-        printf("0i\n");
-        fila = new;
+        //printf("0i\n");
+        (*fila) = new;
     }
     else{
-        printf("Beach\n");
-        struct processo dados = fila->data;
+        //printf("Beach\n");
+        struct processo dados = (*fila)->data;
         if (p.prioridade >= dados.prioridade)
         {
             processos new = malloc(sizeof(struct Processos));
             new->data = p;
-            new->next = fila;
-            fila = new;
+            new->next = (*fila);
+            *fila = new;
             return 1;
         }
-        processos aux = fila->next;
-        processos ant = fila;
+        processos aux = (*fila)->next;
+        processos ant = *fila;
         for (; aux != NULL; aux = aux->next,ant = aux){
             dados = aux->data;
             if (p.prioridade >= dados.prioridade){
@@ -126,6 +126,9 @@ int addFila(processo p)
 
 
 int main (int argc, char *argv[]){
+    processos fila = NULL;
+    processos exec = NULL;
+    /*
     printf("struct 1\n");
     struct processo p ;
     p.prioridade = 3;
@@ -150,21 +153,29 @@ int main (int argc, char *argv[]){
     h.n_transformacoes = 0;
     h.id = 4;
     h.procfile = 0;
-    addFila(p);
+    addFila(&fila,p);
     printf("print lista11\n");
-    printLista();
-    addFila(l);
-    printLista();
-    addFila(g);
-    printLista();
-    addFila(h);
+    printLista(fila);
+    addFila(&fila,l);
+    printLista(fila);
+    addFila(&fila,g);
+    printLista(fila);
+    addFila(&fila,h);
     printf("print lista2\n");
-    printLista();
-    /*
+    printLista(fila);
+    printf("print lista3\n");
+    removeFila(&fila,g);
+    printLista(fila);
+    checkFila(&fila,&exec);
+    */
+
+
+
+    
     int id = 0;
     ler_arquivo(argv[1]);
-    processos *fila = NULL;
-    processos *exec = NULL;
+    //processos *fila = NULL;
+    //processos *exec = NULL;
 
 
     while (1)
@@ -177,8 +188,7 @@ int main (int argc, char *argv[]){
         sleep(1);
         //printf("%s\n",line);
         
-        if (!fork())
-        {
+        //if (!fork()){
             processo p;
             int es = -1;
             for(int aux = 0;line[aux] != '\0';aux++) {
@@ -194,6 +204,7 @@ int main (int argc, char *argv[]){
             char* token;
             for(token = strtok_r(line, " ",&resto); token != NULL ; token = strtok_r(resto," ",&resto)){
                 //printf("%s\n",token);
+                //printf("%d\n",es);
                 if(es == 0)
                 {
 
@@ -202,14 +213,17 @@ int main (int argc, char *argv[]){
                 }
                 else if(es == 1)
                 {
-                    if(strcmp(token,"proc-file"))
+                    if(!strcmp(token,"proc-file"))
                     {
-                        //printf("%d - n.procfile\n",p.prioridade);
+                        //printf("%d - n.procfile\n",p.procfile);
                         p.procfile = 1;
                     }
+                    
                     else p.procfile = 0;
+                    
                 }
-                else
+
+                else 
                 {
                     t[es-2] = malloc(sizeof(token));
                     strcpy(t[es-2], token);
@@ -224,60 +238,95 @@ int main (int argc, char *argv[]){
             //}
             //printf("oi\n");
             addFila(&fila,p);
+            //_exit(1);
             //printf("oiiiiiii\n");
-            }
-        sleep(1);
-        int b = checkFila(&fila,&exec);
+
+        //}
+        //wait(NULL);
+        checkFila(&fila,exec);
+        //printf("executaacabou\n");
         memset(line,0,strlen(line));
         }
-      */
+      
 }
-/*
-int checkFila()
-{
-    processos *corre = fila;
+int removeFila(processos* fila,struct processo p){
+    processos aux = *fila;
+    processos ant = NULL;
+    if(aux->data.id == p.id){
+        //printf("removendoprimeiro\n");
+        ant = aux;
+        *fila = aux -> next;
+        free(ant);
+        
+        return 1;
+    }
+    while (aux != NULL) {
+        ant = aux;
+        aux = aux->next;
+        if(aux->data.id == p.id){
+            ant -> next = aux->next;
+            free(aux);
+            return 1;
+        }
+    }
+    return 0;
+}
 
-    if (fila == NULL) {
+int checkFila(processos* fila,processos exec){
+    processos corre = *fila;
+
+    if (*fila == NULL) {
         printf("Hello\n");
+        return 1;
     }
     else
     {
         for (;  corre!=NULL ; corre =corre->next)
         {
             struct processo dados = corre->data;
-            printf("%d - n.prioridades\n",dados.prioridade);
-            printf("%d - n.transformacoes\n",dados.n_transformacoes);
-            printf("%d - n.procfile\n",dados.prioridade);
-            for (int i = 0 ; i < dados.n_transformacoes ; i ++){
-                printf("%s - transformacoes\n",dados.transformacoes[i]);
-            }
+            //printf("%d - n.prioridades\n",dados.prioridade);
+            //printf("%d - n.transformacoes\n",dados.n_transformacoes);
+            //printf("%d - n.procfile\n",dados.prioridade);
+            //for (int i = 0 ; i < dados.n_transformacoes ; i ++){
+                //printf("%s - transformacoes\n",dados.transformacoes[i]);
+            //}
             
             if(dados.procfile == 1)
             {
                 if (permissao(dados.n_transformacoes-2,dados.transformacoes+2))
                 {
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
-                    addFila(exec,dados);
-                    //removeFila(corre,dados);
+                    addFila(&exec,dados);
+                    removeFila(&corre,dados);
                     if (!fork())
                     {
                         executa(dados);
-                        removeFila(exec,dados);
+                        
+                        _exit(1);
                     }
-
+                    wait(NULL);
+                    
+                    //printLista(exec);
+                    removeFila(&exec,dados);
+                    //printLista(exec);
                     return 1;
                 }
             }
             else
-            {
-                status(exec);
+            {   
+                printLista((*fila));
+                printf("oi\n");
+                //return 1;
+                //status(&exec);
             }
         }
     }
+    
+    return 0;
 }
 
-*/
-/*
+
+
 
 
 int executa(struct processo p)
@@ -296,6 +345,7 @@ int executa(struct processo p)
     fd1 = open("contacto",O_WRONLY);
     write(fd1,"Concluded\n",10);
     close(fd1);
+    return 1;
 }
 
 
@@ -645,4 +695,3 @@ int procfile(int argc,char *argv[])
 
 
 
-*/
