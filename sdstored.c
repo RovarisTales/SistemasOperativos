@@ -48,8 +48,8 @@ int status();
 int permissao (int n_transformacoes,char* transformacoes[] );
 int addFila(processos* fila,struct processo *p);
 int removeFila(processos* fila,struct processo p);
-int checkFila(processos* fila,processos exec,char* c);
-int executa(struct processo p,char* c);
+int checkFila(processos* fila,processos *exec);
+int executa(struct processo p);
 void printLista(processos fila);
 //processos fila = NULL;
 //processos exec = NULL;
@@ -122,14 +122,14 @@ int main (int argc, char *argv[]){
         char c[2];
         c[0] = bb;
         c[1] = '\0';
-        printf("%s\n", c);
+        //printf("%s\n", c);
         write(fd1, c, sizeof(c));
 
         //printf("%s\n",line);
         char c1[15] = "contacto";
         strcat(c1, c);
 
-        printf("%s\n", c1);
+        //printf("%s\n", c1);
 
         int fd2 = open(c1, O_WRONLY);
         write(fd2, "Pending\n", 9);
@@ -185,14 +185,14 @@ int main (int argc, char *argv[]){
         //}
         //}
         //wait(NULL);
-        printLista(fila);
-        checkFila(&fila, exec, c);
+        //printLista(fila);
+        checkFila(&fila, &exec);
 
-        printLista(fila);
+        //printLista(fila);
         id++;
         //printf("executaacabou\n");
         memset(line, 0, strlen(line));
-        printf("OI\n");
+        //printf("OI\n");
     }
 }
 
@@ -285,9 +285,9 @@ int removeFila(processos* fila,struct processo p){
     return 0;
 }
 
-int checkFila(processos* fila,processos *exec,char* c){
+int checkFila(processos* fila,processos *exec){
     processos corre = *fila;
-
+    
     if (*fila == NULL) {
         printf("Hello\n");
         return 1;
@@ -310,15 +310,22 @@ int checkFila(processos* fila,processos *exec,char* c){
                 {
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
                     addFila(exec,&dados);
-                    printf("oi\n");
+                    //printf("oi\n");
                     removeFila(fila,dados);
-
-                    int fd = open(c,O_WRONLY);
+                    char bb = dados.id + '0';
+                    char c[2];
+                    c[0] = bb;
+                    c[1] = '\0';
+                    char c1[15] = "contacto";
+                    strcat(c1, c);
+                    
+                    //printf("%s\n",c1);
+                    int fd = open(c1,O_WRONLY);
                     write(fd,"Processing\n",12);
                     close(fd);
                     if (!fork())
                     {
-                        executa(dados,c);
+                        executa(dados);
                         _exit(1);
                     }
                     wait(NULL);
@@ -332,9 +339,9 @@ int checkFila(processos* fila,processos *exec,char* c){
             else
             {   
                 printLista((*fila));
-                printf("oi\n");
+                //printf("oi\n");
                 //return 1;
-                status(&exec,dados);
+                //status(exec,dados);
             }
         }
     }
@@ -346,7 +353,7 @@ int checkFila(processos* fila,processos *exec,char* c){
 
 
 
-int executa(struct processo p,char* c)
+int executa(struct processo p)
 {
 
     //printf("pipe open\n");
@@ -358,8 +365,16 @@ int executa(struct processo p,char* c)
     //TODO talvez tenha q concertar o numero de transformcoes e o array das transformacoes
     procfile(p.n_transformacoes,p.transformacoes);
     diminuirConf(p.n_transformacoes-2,p.transformacoes+2);
-
-    int fd1 = open(c,O_WRONLY);
+    char bb = p.id + '0';
+    char c[2];
+    c[0] = bb;
+    c[1] = '\0';
+    //printf("%s\n",c);
+    char c1[15] = "contacto";
+    strcat(c1, c);
+    //printf("%s\n",c1);
+    fflush(stdin);
+    int fd1 = open(c1,O_WRONLY);
     write(fd1,"Concluded\n",10);
     close(fd1);
     return 1;
@@ -565,7 +580,7 @@ void diminuirConf(int n_transformacoes,char* transformacoes[])
         
     }
 }
-
+/*
 int status(processos *exec,processo p)
 {
     processos corre = *exec;
@@ -597,7 +612,7 @@ int status(processos *exec,processo p)
     
     return 0;
 }
-
+*/
 //Adicionei a variavel ed, q é o id do processo , pois será imporante para comunicar com o cliente q tem o id o status do processo
 int procfile(int argc,char *argv[])
 {
