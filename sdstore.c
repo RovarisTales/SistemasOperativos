@@ -12,85 +12,75 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <math.h>
 // ./sdstore proc-file <priority> samples/file-a outputs/file-a-output bcompress nop gcompress encrypt nop
 
+char* itoa(int val, int base);
 //TODO Comunicação servidor para o cliente 
-int main (int argc, char *argv[])
-{
-    char buffer[128];
-    //sdsdstreijhyase proc-file banan.txt final alt1 alt2
-    //argc 6
-    //printf("%d aqui\n",argc);
+int main (int argc, char *argv[]){
+    char buffer [128];
+    pid_t pid = getpid();
+    char *aux = NULL;
+    aux = itoa(pid,10);
+
+    strcat(aux,"\0");
     for (int i = 1; i < argc; i++)
     {
         strcat(buffer,argv[i]);
-        //printf("%s %d aqui carai \n",argv[i],i);
-
-        if (i != (argc-1)){
-            strcat(buffer," ");
-        }
-        else strcat(buffer,"\0");
+        strcat(buffer," ");
     }
-    //printf("%sbuffer\n ",buffer);
 
-    //printf("%s\n",buffer); //está a imprimir uma merda qualquer no inicio
-    //printf("pipe open\n");
+    strcat(buffer,aux);
+
     int fd = open("contacto",O_WRONLY);
     write(fd,buffer,sizeof(buffer));
     close(fd);
-    buffer[0] = '\0';
-    unlink("contacto");
+    //buffer[0] = '\0';
 
-    int fd1 = open("id",O_RDONLY);
-    char qualid[4];
-    read(fd1,qualid,4);
-    close(fd1);
     //TODO while que espera o concluded e cria um FIFO para o processo.
-    //printf("pipe closed\n");
-    
+    mkfifo(aux,0666);
+    char line [128] ;
+    int fd2 = open(aux,O_RDONLY,0666);
+    int size;
 
-    char op[15];
-    char c1[15] = "contacto";
-    strcat(c1,qualid);
-    printf("%s\n",c1);
-    mkfifo(c1,0666);
-    //int fd2 = open(c1,O_RDONLY);
-    for(int x = 0;x!= 3;x++){
-        int fd2 = open(c1,O_RDONLY);
-        printf("%d ciclo\n",x);
-        read(fd2,op,sizeof(op));
-        close(fd2);
-        printf("%s",op);
-        memset(op,0,strlen(op));
+    while (1)
+    {
+        //fflush(STDOUT_FILENO);
+        
+        size = read(fd2,line,sizeof (line));
+        if(size>0) {
+            write(STDOUT_FILENO,line,size);
+            
+        }
+        if(!strcmp(line,"Concluded\n")) break;
+        memset(line,0,strlen(line));
     }
-    close(fd1);
-    unlink(c1);
+    printf("oi\n");
 
-    // int p1 = open("pending",O_RDONLY);
-    // read(p1,op,15);
-    // close(p1);
-    // printf("%s\n",op);
-    // unlink("pending");
-    
-    // memset(op,0,strlen(op));
-    // int p2 = open("processing",O_RDONLY);
-    // read(p2,op,15);
-    // close(p2);
-    // printf("%s\n",op);
-    // unlink("processing");
-    // memset(op,0,strlen(op));
-    // int p3 = open("concluded",O_RDONLY);
-    // read(p3,op,15);
-    // close(p3);
-    // printf("%s\n",op);
-    // unlink("concluded");
-    
+    //int fd2 = open(c1,O_RDONLY);
+    close(fd2);
+    unlink(aux);
+
     return 0;
 
 }
 
 
 
+char* itoa(int val, int base)
+{
+
+    static char buf[32] = {0};
+
+    int i = 30;
+
+    for(; val && i ; --i, val /= base)
+
+        buf[i] = "0123456789abcdef"[val % base];
+
+    return &buf[i+1];
+
+}
 
 
 
