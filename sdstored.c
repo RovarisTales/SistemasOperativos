@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <ctype.h>
+
 typedef struct Processos* processos;
 typedef struct processo processo;
 struct processo
@@ -16,6 +18,8 @@ struct processo
     int n_transformacoes;
     int procfile ;
     char* pid;
+    int tamanho_original ;
+    int tamanho_final;
 };
 
 struct Processos {
@@ -52,11 +56,12 @@ int removeFila(processos* fila,struct processo p);
 int checkFila(processos* fila,processos *exec);
 int executa(struct processo p);
 void printLista(processos fila);
+char* itoa(int val, int base);
+
 //processos fila = NULL;
 //processos exec = NULL;
 
-int main (int argc, char *argv[])
-{
+int main (int argc, char *argv[]){
     processos fila = NULL;
     processos exec = NULL;
 
@@ -70,8 +75,9 @@ int main (int argc, char *argv[])
         char line[128];
         read(fd, line, 128);
         close(fd);
-
+        printf("%s\n",line);
         if(strcmp(line,"done")) {
+            //printf("%s\n",line);
             processo p;
 
             int es = -2;
@@ -88,18 +94,33 @@ int main (int argc, char *argv[])
             char *token = NULL;
             for (token = strtok_r(line, " ", &resto); token != NULL; token = strtok_r(resto, " ", &resto)) {
                 if (es == 0) {
-                    if (strcmp(token, "proc-file")) {
+                    if (!strcmp(token, "proc-file"))
+                    {
                         p.procfile = 1;
-                    } else p.procfile = 0;
-
-                } else if (es == 1) {
+                    }
+                    else
+                    {
+                        p.procfile = 0;
+                    }
+                }
+                else if (es == 1)
+                {
                     p.prioridade = atoi(token);
                     //printf("%d - n.prioridade\n",p.prioridade);
 
                 }
+                else if (es == 2)
+                {
+                    int fd3 = open(token, O_WRONLY | O_CREAT | O_APPEND | S_IRUSR | S_IWUSR,0666);
+                    struct stat st;
+                    fstat(fd3, &st);
+                    off_t filesize = st.st_size;
+                    p.tamanho_original = filesize;
+                }
 
-                else if (p.n_transformacoes+2 == es ) {
-                    printf("pid\n");
+                else if (p.n_transformacoes+2 == es )
+                {
+                    //printf("pid\n");
                     p.pid = malloc(sizeof (strlen(token)));
                     strcpy(p.pid,token);
                 }
@@ -124,7 +145,7 @@ int main (int argc, char *argv[])
 
 void printLista(processos fila)
 {
-    printf("NOVALISTA\n");
+    //printf("NOVALISTA\n");
     if (fila != NULL)
     {
         processos  corre = fila;
@@ -152,7 +173,7 @@ int addFila(processos* fila,processo p){
 
     if (*fila == NULL)
     {
-        printf("oifil\n");
+        //printf("oifil\n");
         processos new = malloc (sizeof (struct Processos));
         new->data = p;
         new->next = NULL;
@@ -245,8 +266,13 @@ int checkFila(processos* fila,processos *exec){
                         executa(dados);
                         _exit(1);
                     }
-                    wait(NULL);
+                    int fd4 = open(dados.transformacoes[2], O_WRONLY | O_CREAT | O_APPEND | S_IRUSR | S_IWUSR);
+                    struct stat st;
+                    fstat(fd4, &st);
+                    off_t filesize = st.st_size;
+                    dados.tamanho_final = filesize;
                     diminuirConf(dados.n_transformacoes-2,dados.transformacoes+2);
+
                     removeFila(exec,dados);
                     return 1;
                 }
@@ -274,7 +300,17 @@ int executa(struct processo p)
 
     procfile(p.n_transformacoes,p.transformacoes);
 
-    write(fd1,"Concluded\n",10);
+    write(fd1,"Concluded (bytes-input: ",24);
+    char *aux = NULL;
+    aux = itoa(p.tamanho_original,10);
+    write(fd1,aux,strlen(aux));
+    write(fd1,", bytes-output: ",17);
+    aux = itoa(p.tamanho_final,10);
+    write(fd1,aux,strlen(aux));
+    write(fd1,")",1);
+
+
+
     close(fd1);
     return 1;
 }
@@ -479,21 +515,40 @@ void diminuirConf(int n_transformacoes,char* transformacoes[])
 
     }
 }
-/*
+
 int status(processos *exec,processo p)
 {
     processos corre = *exec;
-
+    char linha [128];
+    fd = open(p.pid,O_WRONLY,0666);
     if (corre != NULL)
     {
         char printProc[512];
         for (;  corre!=NULL ; corre =corre->next)
         {
-            strcat(corre,"Processo ");
-
-            for (int i = 0 ; )
-
+            strcpy(linha,"Processo ");
+            for (int i = 0 ; i < p.n_transformacoes; i++)
+            {
+                strcat(linha,p.transformacoes[i]);
+            }
+            write(fd,linha);
+            memset(linha,0,strlen(linha));
         }
+        write(p.pid,"transf bcompress: ",19);
+        char *aux = NULL;
+        aux = itoa(bcompress_e,10);
+        strcat(aux,"\n");
+        write(fd,aux, sizeof(aux));
+
+        write(fd,"transf bcompress: ",19);
+        char *aux = NULL;
+        aux = itoa(bcompress_e,10);
+        write(fd,aux + "\n", sizeof(aux));
+
+        write(fd,"transf bcompress: ",19);
+        char *aux = NULL;
+        aux = itoa(bcompress_e,10);
+        write(fd,aux + "\n", sizeof(aux));
     }
 
     char buff*;
@@ -507,11 +562,11 @@ int status(processos *exec,processo p)
     printf("transf decrypt: %d/%d (running/max)",decrypt_e,decryptM);
 
 
-    // close(fd);
+    close(fd);
     
     return 0;
 }
-*/
+
 int procfile(int argc,char *argv[])
 {
     int exitstatus;
@@ -572,9 +627,9 @@ int procfile(int argc,char *argv[])
                 //programa executa
 
             
-            execl(transf ,transf,NULL);
-            perror("execl");
-            _exit(1);
+                execl(transf ,transf,NULL);
+                perror("execl");
+                _exit(1);
             
             }
         }
@@ -611,6 +666,7 @@ int procfile(int argc,char *argv[])
                 dup2(fd1,STDOUT_FILENO);
                 dup2(p[i-3][0],STDIN_FILENO);
                 execl(transf ,transf,NULL);
+                perror("execl");
                 _exit(1);
             }
             
@@ -629,9 +685,9 @@ int procfile(int argc,char *argv[])
     while(wait(&exitstatus)!= -1){
         exitstatus = WEXITSTATUS(exitstatus);
 
-
-        if(exitstatus==1){
-
+        printf("exitstatus %d\n",exitstatus);
+        if(exitstatus==0){
+            printf("waitconcluded\n");
             int fd1 = open("contacto",O_WRONLY);
             write(fd1,"done",4);
             close(fd1);
@@ -641,6 +697,21 @@ int procfile(int argc,char *argv[])
     }
     return 0;
 
+
+}
+
+char* itoa(int val, int base)
+{
+
+    static char buf[32] = {0};
+
+    int i = 30;
+
+    for(; val && i ; --i, val /= base)
+
+        buf[i] = "0123456789abcdef"[val % base];
+
+    return &buf[i+1];
 
 }
 

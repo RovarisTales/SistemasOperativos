@@ -16,18 +16,31 @@
 // ./sdstore proc-file <priority> samples/file-a outputs/file-a-output bcompress nop gcompress encrypt nop
 
 char* itoa(int val, int base);
-//TODO Comunicação servidor para o cliente 
+
 int main (int argc, char *argv[]){
+    //char quantos[64];
+    //salva stdout
+    //troca stdout por quantos
+    //
+
+
+
+
+
+
     char buffer [128];
     pid_t pid = getpid();
     char *aux = NULL;
     aux = itoa(pid,10);
-
+    strcpy(buffer,argv[1]);
+    strcat(buffer," ");
     strcat(aux,"\0");
-    for (int i = 1; i < argc; i++)
+    for (int i = 2; i < argc; i++)
     {
+
         strcat(buffer,argv[i]);
         strcat(buffer," ");
+        printf("%s\n",buffer);
     }
 
     strcat(buffer,aux);
@@ -37,7 +50,6 @@ int main (int argc, char *argv[]){
     close(fd);
     //buffer[0] = '\0';
 
-    //TODO while que espera o concluded e cria um FIFO para o processo.
     mkfifo(aux,0666);
     char line [128] ;
     int fd2 = open(aux,O_RDONLY,0666);
@@ -45,19 +57,16 @@ int main (int argc, char *argv[]){
 
     while (1)
     {
-        //fflush(STDOUT_FILENO);
-        
+
         size = read(fd2,line,sizeof (line));
         if(size>0) {
             write(STDOUT_FILENO,line,size);
-            
         }
-        if(!strcmp(line,"Concluded\n")) break;
+        if(strstr(line,")")!= NULL) break;
         memset(line,0,strlen(line));
     }
     printf("oi\n");
 
-    //int fd2 = open(c1,O_RDONLY);
     close(fd2);
     unlink(aux);
 
