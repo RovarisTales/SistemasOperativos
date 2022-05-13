@@ -13,7 +13,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <math.h>
-// ./sdstore proc-file <priority> samples/file-a outputs/file-a-output bcompress nop gcompress encrypt nop
+// TODO sinal
+// TODO diminui conf
+// TODO pending bugado
 
 char* itoa(int val, int base);
 
