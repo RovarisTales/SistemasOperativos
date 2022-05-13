@@ -6,12 +6,13 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <ctype.h>
+//#include <ctype.h>
 #include <signal.h>
+
+
 typedef struct Processos* processos;
 typedef struct processo processo;
-struct processo
-{
+struct processo{
     int id ;
     int prioridade;
     char** transformacoes; //char* transformacoes[9]
@@ -58,44 +59,45 @@ int executa(struct processo p);
 void printLista(processos fila);
 char* itoa(int val, int base);
 //TODO Tem q decidir em relação a o q fazer pois precisamos do fila e exec como variaveis gloabis
+/*
 void sigterm_handler()
 {
-    int tem_fila = 1
+    int tem_fila = 1;
     while (tem_fila == 1)
     {
-        checkFila(fila,exec)
+        checkFila(fila,exec);
     }
-    exit(1)
+    exit(1);
 }
+*/
 //processos fila = NULL;
 //processos exec = NULL;
 
 int main (int argc, char *argv[]){
     processos fila = NULL;
     processos exec = NULL;
-
+    /*
     if (signal(SIGTERM, sigterm_handler) == SIG_ERR)
     {
         perror("SIGTERM failed");
     }
+    */
     int id = 0;
     ler_arquivo(argv[1]);
     //TODO SE FOR STATUS NAO FUNCIONA
     mkfifo("contacto", 0666);
-    while (1)
-    {
+    while (1){
         int fd = open("contacto", O_RDONLY, 0666);
         char line[128];
         read(fd, line, 128);
         close(fd);
-        printf("%s\n",line);
-        if(strcmp(line,"done")) {
-            //printf("%s\n",line);
+        
+        if(strstr(line,"proc-file")!= NULL) {
+            
             processo p;
 
             int es = -2;
-            for (int aux = 0; line[aux] != '\0'; aux++)
-            {
+            for (int aux = 0; line[aux] != '\0'; aux++){
                 if (line[aux] == ' ') es++;
             }
             char **t = malloc(sizeof(char *) * es);
@@ -107,38 +109,37 @@ int main (int argc, char *argv[]){
             char *token = NULL;
             for (token = strtok_r(line, " ", &resto); token != NULL; token = strtok_r(resto, " ", &resto)) {
                 if (es == 0) {
-                    if (!strcmp(token, "proc-file"))
-                    {
+                    if (!strcmp(token, "proc-file")){
                         p.procfile = 1;
                     }
-                    else
-                    {
+                    else{
                         p.procfile = 0;
                         p.pid = malloc(sizeof (strlen(token)));
                         strcpy(p.pid,token);
                         break;
                     }
                 }
-                else if (es == 1)
-                {
+                else if (es == 1){
                     p.prioridade = atoi(token);
-                    //printf("%d - n.prioridade\n",p.prioridade);
+                    
 
                 }
-                else if (es == 2)
-                {
-                    int fd3 = open(token, O_WRONLY | O_CREAT | O_APPEND | S_IRUSR | S_IWUSR,0666);
+                else if (es == 2){
+                    int fd3 = open(token, 0666);
+                    
                     struct stat st;
                     fstat(fd3, &st);
                     off_t filesize = st.st_size;
                     p.tamanho_original = filesize;
+                    
                     t[es - 2] = malloc(sizeof(token));
                     strcpy(t[es - 2], token);
+                    
                 }
+                
 
-                else if (p.n_transformacoes+2 == es )
-                {
-                    //printf("pid\n");
+                else if (p.n_transformacoes+2 == es ){
+                  
                     p.pid = malloc(sizeof (strlen(token)));
                     strcpy(p.pid,token);
 
@@ -153,20 +154,19 @@ int main (int argc, char *argv[]){
             p.id = id;
             p.transformacoes = t;
             addFila(&fila, p);
+           
             id++;
         }
-        printLista(fila);
+        //printLista(fila);
         checkFila(&fila, &exec);
         memset(line, 0, strlen(line));
     }
 }
 
 
-void printLista(processos fila)
-{
-    //printf("NOVALISTA\n");
-    if (fila != NULL)
-    {
+void printLista(processos fila){
+    
+    if (fila != NULL){
         processos  corre = fila;
         for (; corre != NULL; corre = corre->next) {
             struct processo dados = corre->data;
@@ -181,8 +181,7 @@ void printLista(processos fila)
             }
         }
     }
-    else
-    {
+    else{
         printf("FILA NULL\n");
     }
 
@@ -190,23 +189,21 @@ void printLista(processos fila)
 
 int addFila(processos* fila,processo p){
 
-    if (*fila == NULL)
-    {
-        //printf("oifil\n");
+    if (*fila == NULL){
+        
         processos new = malloc (sizeof (struct Processos));
         new->data = p;
         new->next = NULL;
         int fd1 = open(p.pid,O_WRONLY);
         write(fd1,"Pending\n",8);
         close(fd1);
-        //printf("0i\n");
+       
         (*fila) = new;
     }
     else{
-        //printf("Beach\n");
+        
         struct processo dados = (*fila)->data;
-        if (p.prioridade > dados.prioridade)
-        {
+        if (p.prioridade > dados.prioridade){
             processos new = malloc(sizeof(struct Processos));
             new->data = p;
             new->next = (*fila);
@@ -215,9 +212,10 @@ int addFila(processos* fila,processo p){
         }
         processos aux = (*fila)->next;
         processos ant = *fila;
-        for (; aux != NULL; aux = aux->next,ant = aux){
+        for (; aux != NULL; ant = aux,aux = aux->next){
             dados = aux->data;
-            if (p.prioridade >= dados.prioridade){
+            if (p.prioridade > dados.prioridade){
+                
                 processos new = malloc(sizeof(struct Processos));
                 new->data = p;
                 new->next = aux;
@@ -225,10 +223,14 @@ int addFila(processos* fila,processo p){
                 return 1;
             }
         }
+        
         processos new = malloc(sizeof(struct Processos));
         new->data = p;
+        
         new->next = NULL;
+       
         ant->next =new;
+        
         return 1;
 
     }
@@ -260,44 +262,34 @@ int removeFila(processos* fila,struct processo p){
 int checkFila(processos* fila,processos *exec){
     processos corre = *fila;
     
-    if (*fila == NULL)
-    {
+    if (*fila == NULL){
         return 1;
     }
-    else
-    {
-        for (;  corre!=NULL ; corre =corre->next)
-        {
+    else{
+        for (;  corre!=NULL ; corre =corre->next){
             struct processo dados = corre->data;
             
-            if(dados.procfile == 1)
-            {
-                if (permissao(dados.n_transformacoes-2,dados.transformacoes+2))
-                {
+            if(dados.procfile == 1){
+                if (permissao(dados.n_transformacoes-2,dados.transformacoes+2)){
+
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
                     addFila(exec,dados);
                     removeFila(fila,dados);
 
                     
                     
-                    if (!fork())
-                    {
+                    if (!fork()){
                         executa(dados);
                         _exit(1);
                     }
-                    int fd4 = open(dados.transformacoes[2], O_WRONLY | O_CREAT | O_APPEND | S_IRUSR | S_IWUSR);
-                    struct stat st;
-                    fstat(fd4, &st);
-                    off_t filesize = st.st_size;
-                    dados.tamanho_final = filesize;
+                    
                     diminuirConf(dados.n_transformacoes-2,dados.transformacoes+2);
 
                     removeFila(exec,dados);
                     return 1;
                 }
             }
-            else
-            {   
+            else{   
                 printLista((*fila));
             }
         }
@@ -310,24 +302,34 @@ int checkFila(processos* fila,processos *exec){
 
 
 
-int executa(struct processo p)
-{
+int executa(struct processo p){
 
 
     int fd1 = open(p.pid,O_WRONLY,0666);
     write(fd1,"Processing\n",11);
 
     procfile(p.n_transformacoes,p.transformacoes);
-
-    write(fd1,"Concluded (bytes-input: ",24);
+    char final[96];
+    strcpy(final,"Concluded (bytes-input: ");
     char *aux = NULL;
     aux = itoa(p.tamanho_original,10);
-    write(fd1,aux,strlen(aux));
+    strcat(final,aux);
     //TODO não ta dando print
-    write(fd1,", bytes-output: ",17);
+    int fd4 = open(p.transformacoes[1], 0666);
+    
+    struct stat st;
+    fstat(fd4, &st);
+    off_t filesize = st.st_size;
+    //printf("%ld filesize\n",filesize);
+    p.tamanho_final = filesize;
+    strcat(final,", bytes-output: ");
+    memset(aux,0,strlen(aux));
+    
     aux = itoa(p.tamanho_final,10);
-    write(fd1,aux,strlen(aux));
-    write(fd1,")",1);
+    strcat(aux,")");
+    strcat(final,aux);
+    write(fd1,final,strlen(final));
+    
 
 
 
@@ -337,45 +339,34 @@ int executa(struct processo p)
 
 
 
-void alteraglobal(char* var,char* num)
-{
+void alteraglobal(char* var,char* num){
     int val = atoi(num);
     if(strcmp(var,"nop")== 0){
 
         nopM = val;
     }
-    else if(strcmp(var,"bcompress")== 0)
-    {
+    else if(strcmp(var,"bcompress")== 0){
         bcompressM = val;
     }
-    else if(strcmp(var,"bdecompress")== 0)
-    {
+    else if(strcmp(var,"bdecompress")== 0){
         bdecompressM = val;
     }
-    else if(strcmp(var,"gdecompress")== 0)
-    {
+    else if(strcmp(var,"gdecompress")== 0){
         gdecompressM = val;
     }
-    else if(strcmp(var,"encrypt")== 0)
-    {
+    else if(strcmp(var,"encrypt")== 0){
         encryptM = val;
     }
-    else if(strcmp(var,"decrypt")== 0)
-    {
+    else if(strcmp(var,"decrypt")== 0){
         decryptM = val;
     }
-    else if(strcmp(var,"gcompress")== 0)
-    {
+    else if(strcmp(var,"gcompress")== 0){
         gcompressM = val;
     }
 
-
-
-
 }
 
-int ler_arquivo(char *arquivo)
-{
+int ler_arquivo(char *arquivo){
     
     int fd = open (arquivo, O_RDONLY);
     char buffer[128];
@@ -400,57 +391,88 @@ int ler_arquivo(char *arquivo)
     return 0;
 }
 
-int permissao (int n_transformacoes,char* transformacoes[] )
-{
+int permissao (int n_transformacoes,char* transformacoes[] ){
     char var [13];
+    int aux[7] = {0};
+
+
     for (int i = 0; i < n_transformacoes; i++)
     {
         strcpy(var, transformacoes[i]);
+        if(strcmp(var,"nop")== 0){
+            aux[0]++; 
+        }
+        else if(strcmp(var,"bcompress")== 0){
+            aux[1]++;
+        }
+        else if(strcmp(var,"bdecompress")== 0){
+            aux[2]++;
+        }
+        else if(strcmp(var,"gdecompress")== 0){
+            aux[3]++;
+        }
+        else if(strcmp(var,"gcompress")== 0){
+            aux[4]++;
+        }
+        else if(strcmp(var,"encrypt")== 0){
+            aux[5]++;
+        }
+        else if(strcmp(var,"decrypt")== 0){
+            aux[6]++;
+        }
+        
+    }
+
+
+
+
+    for (int i = 0; i < n_transformacoes; i++){
+        strcpy(var, transformacoes[i]);
         if(strcmp(var,"nop")== 0)
         {
-            if ( nop_e+ 1 > nopM)
+            if ( nop_e+ aux[0] > nopM)
                 {
                     return 0;
                 } 
         }
         else if(strcmp(var,"bcompress")== 0)
         {
-            if (bcompress_e + 1 > bcompressM)
+            if (bcompress_e + aux[1] > bcompressM)
             {
                 return 0;
             }
         }
         else if(strcmp(var,"bdecompress")== 0)
         {
-            if (bdecompress_e + 1 > bdecompressM)
+            if (bdecompress_e + aux[2] > bdecompressM)
             {
                 return 0;
             }
         }
         else if(strcmp(var,"gdecompress")== 0)
         {
-            if (gdecompress_e + 1 > gdecompressM)
+            if (gdecompress_e + aux[3] > gdecompressM)
             {
                 return 0;
             }
         }
         else if(strcmp(var,"gcompress")== 0)
         {
-            if (gcompress_e + 1 > gcompressM)
+            if (gcompress_e + aux[4] > gcompressM)
             {
                 return 0;
             }
         }
         else if(strcmp(var,"encrypt")== 0)
         {
-            if (encrypt_e + 1 > encryptM)
+            if (encrypt_e + aux[5] > encryptM)
             {
                 return 0;
             }
         }
         else if(strcmp(var,"decrypt")== 0)
         {
-            if (decrypt_e + 1 > decryptM)
+            if (decrypt_e + aux[6] > decryptM)
             {
                 return 0;
             }
@@ -460,11 +482,9 @@ int permissao (int n_transformacoes,char* transformacoes[] )
     return 1;
 }
 
-void aumentarConf(int n_transformacoes,char* transformacoes[])
-{
+void aumentarConf(int n_transformacoes,char* transformacoes[]){
     char var [13];
-    for (int i = 0; i < n_transformacoes; i++)
-    {
+    for (int i = 0; i < n_transformacoes; i++){
         strcpy(var, transformacoes[i]);
         if(strcmp(var,"nop")== 0)
         {
@@ -498,11 +518,9 @@ void aumentarConf(int n_transformacoes,char* transformacoes[])
     }
 }
 
-void diminuirConf(int n_transformacoes,char* transformacoes[])
-{
+void diminuirConf(int n_transformacoes,char* transformacoes[]){
     char var [13];
-    for (int i = 0; i < n_transformacoes; i++)
-    {
+    for (int i = 0; i < n_transformacoes; i++){
         strcpy(var, transformacoes[i]);
         if(strcmp(var,"nop")== 0)
         {
@@ -536,13 +554,11 @@ void diminuirConf(int n_transformacoes,char* transformacoes[])
     }
 }
 
-int status(processos *exec,processo p)
-{
+int status(processos *exec,processo p){
     processos corre = *exec;
     char linha [128];
     int fd = open(p.pid,O_WRONLY,0666);
-    if (corre != NULL)
-    {
+    if (corre != NULL){
         //char printProc[512];
         for (;  corre!=NULL ; corre =corre->next)
         {
@@ -607,20 +623,17 @@ int status(processos *exec,processo p)
     return 0;
 }
 
-int procfile(int argc,char *argv[])
-{
+int procfile(int argc,char *argv[]){
     int exitstatus;
     //criar n-2 pipes para os filhos
     int p[argc-2][2];
 
-    for (int i = 2 ; i < argc ; i++)
-    {
+    for (int i = 2 ; i < argc ; i++){
         //pipe 0 leitura
         //pipe 1 escrita
         //cria n-esimo pipe
         if(i != argc-1){
-            if(pipe(p[i-2]) < 0)
-            {
+            if(pipe(p[i-2]) < 0){
                 perror("pipe");
                 _exit(1);
             }
@@ -632,8 +645,7 @@ int procfile(int argc,char *argv[])
         //primeiro ciclo e 1 argumento
         if(i == 2 && (i == (argc -1))){
             
-            if(!fork())
-            {
+            if(!fork()){
                 //close(pipe_fd)
                 int fd0 = open(argv[0], O_RDONLY,0666);
                 //ficehiro passa a ser stdin
@@ -696,11 +708,9 @@ int procfile(int argc,char *argv[])
             }
         }
         //ultimo ciclo
-        else
-        {
+        else{
 
-            if(!fork())
-            {
+            if(!fork()){
 
                 int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
                 dup2(fd1,STDOUT_FILENO);
@@ -725,9 +735,9 @@ int procfile(int argc,char *argv[])
     while(wait(&exitstatus)!= -1){
         exitstatus = WEXITSTATUS(exitstatus);
 
-        printf("exitstatus %d\n",exitstatus);
+        
         if(exitstatus==0){
-            printf("waitconcluded\n");
+            
             int fd1 = open("contacto",O_WRONLY);
             write(fd1,"done",4);
             close(fd1);
@@ -735,13 +745,13 @@ int procfile(int argc,char *argv[])
             //i++;
         }
     }
+   
     return 0;
 
 
 }
 
-char* itoa(int val, int base)
-{
+char* itoa(int val, int base){
 
     static char buf[32] = {0};
 

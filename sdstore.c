@@ -18,16 +18,6 @@
 char* itoa(int val, int base);
 
 int main (int argc, char *argv[]){
-    //char quantos[64];
-    //salva stdout
-    //troca stdout por quantos
-    //
-
-
-
-
-
-
     char buffer [128];
     pid_t pid = getpid();
     char *aux = NULL;
@@ -35,12 +25,11 @@ int main (int argc, char *argv[]){
     strcpy(buffer,argv[1]);
     strcat(buffer," ");
     strcat(aux,"\0");
-    for (int i = 2; i < argc; i++)
-    {
+    for (int i = 2; i < argc; i++){
 
         strcat(buffer,argv[i]);
         strcat(buffer," ");
-        printf("%s\n",buffer);
+        
     }
 
     strcat(buffer,aux);
@@ -48,25 +37,27 @@ int main (int argc, char *argv[]){
     int fd = open("contacto",O_WRONLY);
     write(fd,buffer,sizeof(buffer));
     close(fd);
-    //buffer[0] = '\0';
+    
 
     mkfifo(aux,0666);
     char line [128] ;
     int fd2 = open(aux,O_RDONLY,0666);
     int size;
 
-    while (1)
-    {
+    while (1){
 
         size = read(fd2,line,sizeof (line));
         if(size>0) {
             write(STDOUT_FILENO,line,size);
+            
         }
-        //TODO Não ta funcionando
-        if(strstr(line,")")!= NULL) break;
+        
+        
+        if(strstr(line,")")!= NULL)  break;
         memset(line,0,strlen(line));
     }
-    printf("oi\n");
+    printf("\n");
+    
 
     close(fd2);
     unlink(aux);
@@ -77,8 +68,7 @@ int main (int argc, char *argv[]){
 
 
 
-char* itoa(int val, int base)
-{
+char* itoa(int val, int base){
 
     static char buf[32] = {0};
 
