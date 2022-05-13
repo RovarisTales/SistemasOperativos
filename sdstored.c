@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ctype.h>
-
+#include <signal.h>
 typedef struct Processos* processos;
 typedef struct processo processo;
 struct processo
@@ -57,7 +57,16 @@ int checkFila(processos* fila,processos *exec);
 int executa(struct processo p);
 void printLista(processos fila);
 char* itoa(int val, int base);
-
+//TODO Tem q decidir em relação a o q fazer pois precisamos do fila e exec como variaveis gloabis
+void sigterm_handler()
+{
+    int tem_fila = 1
+    while (tem_fila == 1)
+    {
+        checkFila(fila,exec)
+    }
+    exit(1)
+}
 //processos fila = NULL;
 //processos exec = NULL;
 
@@ -65,9 +74,13 @@ int main (int argc, char *argv[]){
     processos fila = NULL;
     processos exec = NULL;
 
+    if (signal(SIGTERM, sigterm_handler) == SIG_ERR)
+    {
+        perror("SIGTERM failed");
+    }
     int id = 0;
     ler_arquivo(argv[1]);
-
+    //TODO SE FOR STATUS NAO FUNCIONA
     mkfifo("contacto", 0666);
     while (1)
     {
@@ -101,6 +114,9 @@ int main (int argc, char *argv[]){
                     else
                     {
                         p.procfile = 0;
+                        p.pid = malloc(sizeof (strlen(token)));
+                        strcpy(p.pid,token);
+                        break;
                     }
                 }
                 else if (es == 1)
@@ -116,6 +132,8 @@ int main (int argc, char *argv[]){
                     fstat(fd3, &st);
                     off_t filesize = st.st_size;
                     p.tamanho_original = filesize;
+                    t[es - 2] = malloc(sizeof(token));
+                    strcpy(t[es - 2], token);
                 }
 
                 else if (p.n_transformacoes+2 == es )
@@ -123,6 +141,7 @@ int main (int argc, char *argv[]){
                     //printf("pid\n");
                     p.pid = malloc(sizeof (strlen(token)));
                     strcpy(p.pid,token);
+
                 }
                 else {
                     t[es - 2] = malloc(sizeof(token));
@@ -241,8 +260,8 @@ int removeFila(processos* fila,struct processo p){
 int checkFila(processos* fila,processos *exec){
     processos corre = *fila;
     
-    if (*fila == NULL) {
-        printf("Hello\n");
+    if (*fila == NULL)
+    {
         return 1;
     }
     else
@@ -304,6 +323,7 @@ int executa(struct processo p)
     char *aux = NULL;
     aux = itoa(p.tamanho_original,10);
     write(fd1,aux,strlen(aux));
+    //TODO não ta dando print
     write(fd1,", bytes-output: ",17);
     aux = itoa(p.tamanho_final,10);
     write(fd1,aux,strlen(aux));
@@ -520,10 +540,10 @@ int status(processos *exec,processo p)
 {
     processos corre = *exec;
     char linha [128];
-    fd = open(p.pid,O_WRONLY,0666);
+    int fd = open(p.pid,O_WRONLY,0666);
     if (corre != NULL)
     {
-        char printProc[512];
+        //char printProc[512];
         for (;  corre!=NULL ; corre =corre->next)
         {
             strcpy(linha,"Processo ");
@@ -531,35 +551,55 @@ int status(processos *exec,processo p)
             {
                 strcat(linha,p.transformacoes[i]);
             }
-            write(fd,linha);
+            write(fd,linha,strlen(linha));
             memset(linha,0,strlen(linha));
         }
-        write(p.pid,"transf bcompress: ",19);
-        char *aux = NULL;
-        aux = itoa(bcompress_e,10);
-        strcat(aux,"\n");
-        write(fd,aux, sizeof(aux));
 
-        write(fd,"transf bcompress: ",19);
-        char *aux = NULL;
-        aux = itoa(bcompress_e,10);
-        write(fd,aux + "\n", sizeof(aux));
-
-        write(fd,"transf bcompress: ",19);
-        char *aux = NULL;
-        aux = itoa(bcompress_e,10);
-        write(fd,aux + "\n", sizeof(aux));
     }
 
-    char buff*;
+    char operacoes [1024];
+    strcat(operacoes,"transf bcompress: ");
+    strcat(operacoes,itoa(bcompress_e,10));
+    strcat(operacoes,"/");
+    strcat(operacoes,itoa(bcompressM,10));
+    strcat(operacoes," (running/max)\n");
 
-    ("transf nop: %d/%d (running/max)",nop_e,nopM);
-    printf("transf bcompress: %d/%d (running/max)",bcompress_e,bcompressM);
-    printf("transf bdecompress: %d/%d (running/max)",bdecompress_e,bdecompressM);
-    printf("transf gcompress: %d/%d (running/max)",gcompress_e,gcompressM);
-    printf("transf gdecompress_e: %d/%d (running/max)",gdecompress_e,gdecompressM);
-    printf("transf encrypt: %d/%d (running/max)",encrypt_e,encryptM);
-    printf("transf decrypt: %d/%d (running/max)",decrypt_e,decryptM);
+    strcat(operacoes,"transf bdecompress: ");
+    strcat(operacoes,itoa(bdecompress_e,10));
+    strcat(operacoes,"/");
+    strcat(operacoes,itoa(bdecompressM,10));
+    strcat(operacoes," (running/max)\n");
+
+    strcat(operacoes,"transf gcompress: ");
+    strcat(operacoes,itoa(gcompress_e,10));
+    strcat(operacoes,"/");
+    strcat(operacoes,itoa(gcompressM,10));
+    strcat(operacoes," (running/max)\n");
+
+    strcat(operacoes,"transf gdecompress: ");
+    strcat(operacoes,itoa(gdecompress_e,10));
+    strcat(operacoes,"/");
+    strcat(operacoes,itoa(gdecompressM,10));
+    strcat(operacoes," (running/max)\n");
+
+    strcat(operacoes,"transf encrypt: ");
+    strcat(operacoes,itoa(encrypt_e,10));
+    strcat(operacoes,"/");
+    strcat(operacoes,itoa(encryptM,10));
+    strcat(operacoes," (running/max)\n");
+
+    strcat(operacoes,"transf decrypt: ");
+    strcat(operacoes,itoa(decrypt_e,10));
+    strcat(operacoes,"/");
+    strcat(operacoes,itoa(decryptM,10));
+    strcat(operacoes," (running/max)\n");
+
+    strcat(operacoes,"transf nop: ");
+    strcat(operacoes,itoa(nop_e,10));
+    strcat(operacoes,"/");
+    strcat(operacoes,itoa(nopM,10));
+    strcat(operacoes," (running/max)\n");
+    write(fd,operacoes, strlen(operacoes));
 
 
     close(fd);
@@ -707,10 +747,9 @@ char* itoa(int val, int base)
 
     int i = 30;
 
-    for(; val && i ; --i, val /= base)
-
+    for(; val && i ; --i, val /= base) {
         buf[i] = "0123456789abcdef"[val % base];
-
+    }
     return &buf[i+1];
 
 }

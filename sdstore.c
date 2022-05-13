@@ -62,6 +62,7 @@ int main (int argc, char *argv[]){
         if(size>0) {
             write(STDOUT_FILENO,line,size);
         }
+        //TODO Não ta funcionando
         if(strstr(line,")")!= NULL) break;
         memset(line,0,strlen(line));
     }
