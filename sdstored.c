@@ -63,6 +63,7 @@ int pode(int n_transformacoes,char* transformacoes[]);
 
 void sigterm_handler()
 {
+    unlink("contacto");
     /*
     while (checkFila() == 1)
     {
@@ -86,7 +87,7 @@ int main (int argc, char *argv[]){
     
     int id = 0;
     ler_arquivo(argv[1]);
-    //TODO SE FOR STATUS NAO FUNCIONA
+    
     mkfifo("contacto", 0666);
     while (1){
         
@@ -235,14 +236,15 @@ void printLista(processos fila){
 
 int addFila(processos* fila,processo p){
 
+    int fd1 = open(p.pid,O_WRONLY);
+    write(fd1,"Pending\n",8);
+    close(fd1);
     if (*fila == NULL){
         
         processos new = malloc (sizeof (struct Processos));
         new->data = p;
         new->next = NULL;
-        int fd1 = open(p.pid,O_WRONLY);
-        write(fd1,"Pending\n",8);
-        close(fd1);
+        
        
         (*fila) = new;
     }

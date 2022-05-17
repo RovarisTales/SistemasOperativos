@@ -39,6 +39,9 @@ int main (int argc, char *argv[]){
     //printf("buffer %s\n",buffer);
    
     int fd = open("contacto",O_WRONLY);
+    if(fd  == -1){
+        perror("open");
+    }
     write(fd,buffer,sizeof(buffer));
     close(fd);
     
@@ -47,14 +50,23 @@ int main (int argc, char *argv[]){
     int size;
     
     char line [512];
-    
+    //size = read(fd2,line,sizeof (line));
+    //if(size == -1){
+    //    perror("read");
+    //}
+    //write(STDOUT_FILENO,line,size);
+    memset(line,0,strlen(line));
     
     while (1){
 
         size = read(fd2,line,sizeof (line));
+        if(size == -1){
+            //perror("read");
+            printf("ERRO\n");
+        }
         if(size>0) {
             write(STDOUT_FILENO,line,size);
-            
+            printf("a%s",line);
         }
         
         
