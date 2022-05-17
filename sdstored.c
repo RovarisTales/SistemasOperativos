@@ -60,40 +60,43 @@ void printLista(processos fila);
 char* itoa(int val, int base);
 int pode(int n_transformacoes,char* transformacoes[]);
 //TODO Tem q decidir em relação a o q fazer pois precisamos do fila e exec como variaveis gloabis
-/*
+
 void sigterm_handler()
 {
-    int tem_fila = 1;
-    while (tem_fila == 1)
+    /*
+    while (checkFila() == 1)
     {
-        checkFila(fila,exec);
+        
     }
+    */
     exit(1);
 }
-*/
+
 //processos fila = NULL;
 //processos exec = NULL;
 
 int main (int argc, char *argv[]){
     processos fila = NULL;
     processos exec = NULL;
-    /*
+    
     if (signal(SIGTERM, sigterm_handler) == SIG_ERR)
     {
         perror("SIGTERM failed");
     }
-    */
+    
     int id = 0;
     ler_arquivo(argv[1]);
     //TODO SE FOR STATUS NAO FUNCIONA
     mkfifo("contacto", 0666);
     while (1){
-        int fd = open("contacto", O_RDONLY, 0666);
+        
+        int fd = open("contacto", O_RDONLY);
         char line[128];
         read(fd, line, 128);
         close(fd);
+       
         
-        if(strstr(line,"proc-file")!= NULL) {
+        if(strstr(line,"proc-file")!=NULL) {
             
             processo p;
 
@@ -104,16 +107,19 @@ int main (int argc, char *argv[]){
             char **t = malloc(sizeof(char *) * es);
 
             p.n_transformacoes = es;
-
+            
             es = 0;
             char *resto = NULL;
             char *token = NULL;
+            
             for (token = strtok_r(line, " ", &resto); token != NULL; token = strtok_r(resto, " ", &resto)) {
                 if (es == 0) {
                     if (!strcmp(token, "proc-file")){
+                        
                         p.procfile = 1;
                     }
                     else{
+                        
                         p.procfile = 0;
                         p.pid = malloc(sizeof (strlen(token)));
                         strcpy(p.pid,token);
@@ -121,11 +127,14 @@ int main (int argc, char *argv[]){
                     }
                 }
                 else if (es == 1){
+                    
+
                     p.prioridade = atoi(token);
                     
 
                 }
                 else if (es == 2){
+                    
                     int fd3 = open(token, 0666);
                     
                     struct stat st;
@@ -135,6 +144,7 @@ int main (int argc, char *argv[]){
                     
                     t[es - 2] = malloc(sizeof(token));
                     strcpy(t[es - 2], token);
+                    
                     
                 }
                 
@@ -151,6 +161,7 @@ int main (int argc, char *argv[]){
                 }
                 es++;
             }
+            
 
             p.id = id;
             p.transformacoes = t;
@@ -165,7 +176,33 @@ int main (int argc, char *argv[]){
                 close(fd1);
             }
             id++;
+        
+        }else if(strstr(line,"status")!= NULL){
+            printf("status\n");
+            processo p2;
+            int st = 0;
+            char *resto = NULL;
+            char *token = NULL;
+            for (token = strtok_r(line, " ", &resto); token != NULL; token = strtok_r(resto, " ", &resto)) {
+                if(st == 0) st++;
+                else{
+                    p2.pid = malloc(sizeof (strlen(token)));
+                    strcpy(p2.pid,token);
+                }
+            
+            }
+            p2.id = id;
+            id++;
+            p2.n_transformacoes = 0;
+            p2.prioridade = -1;
+            p2.procfile = 0;
+            p2.tamanho_final = -1;
+            p2.tamanho_original = -1;
+            p2.transformacoes = NULL;
+            
+            status(&exec,p2);
         }
+       
         //printLista(fila);
         checkFila(&fila, &exec);
         memset(line, 0, strlen(line));
@@ -650,9 +687,11 @@ void diminuirConf(int n_transformacoes,char* transformacoes[]){
 }
 
 int status(processos *exec,processo p){
+    
     processos corre = (*exec);
     char linha [128];
-    int fd = open(p.pid,O_WRONLY,0666);
+    printf("pid %s\n",p.pid);
+    int fd = open(p.pid,O_WRONLY);
     if (corre != NULL){
         //char printProc[512];
         for (;  corre!=NULL ; corre =corre->next)
@@ -668,51 +707,54 @@ int status(processos *exec,processo p){
 
     }
 
-    char operacoes [1024];
+    char operacoes [512];
+    
+    
+    printf("%s\n",operacoes);
     strcat(operacoes,"transf bcompress: ");
     strcat(operacoes,itoa(bcompress_e,10));
     strcat(operacoes,"/");
     strcat(operacoes,itoa(bcompressM,10));
     strcat(operacoes," (running/max)\n");
-
+    
     strcat(operacoes,"transf bdecompress: ");
     strcat(operacoes,itoa(bdecompress_e,10));
     strcat(operacoes,"/");
     strcat(operacoes,itoa(bdecompressM,10));
     strcat(operacoes," (running/max)\n");
-
+    
     strcat(operacoes,"transf gcompress: ");
     strcat(operacoes,itoa(gcompress_e,10));
     strcat(operacoes,"/");
     strcat(operacoes,itoa(gcompressM,10));
     strcat(operacoes," (running/max)\n");
-
+    
     strcat(operacoes,"transf gdecompress: ");
     strcat(operacoes,itoa(gdecompress_e,10));
     strcat(operacoes,"/");
     strcat(operacoes,itoa(gdecompressM,10));
     strcat(operacoes," (running/max)\n");
-
+    
     strcat(operacoes,"transf encrypt: ");
     strcat(operacoes,itoa(encrypt_e,10));
     strcat(operacoes,"/");
     strcat(operacoes,itoa(encryptM,10));
     strcat(operacoes," (running/max)\n");
-
+    
     strcat(operacoes,"transf decrypt: ");
     strcat(operacoes,itoa(decrypt_e,10));
     strcat(operacoes,"/");
     strcat(operacoes,itoa(decryptM,10));
     strcat(operacoes," (running/max)\n");
-
+    
     strcat(operacoes,"transf nop: ");
     strcat(operacoes,itoa(nop_e,10));
     strcat(operacoes,"/");
     strcat(operacoes,itoa(nopM,10));
-    strcat(operacoes," (running/max)\n");
+    strcat(operacoes," (running/max)");
     write(fd,operacoes, strlen(operacoes));
-
-
+    
+    memset(operacoes,0,strlen(operacoes));
     close(fd);
     
     return 0;
@@ -847,7 +889,10 @@ int procfile(int argc,char *argv[]){
 }
 
 char* itoa(int val, int base){
-
+    if(val == 0){
+        static char zero[2] = "0";
+        return &zero[0]; 
+    }
     static char buf[32] = {0};
 
     int i = 30;

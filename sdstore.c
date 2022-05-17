@@ -24,6 +24,7 @@ int main (int argc, char *argv[]){
     pid_t pid = getpid();
     char *aux = NULL;
     aux = itoa(pid,10);
+    mkfifo(aux,0666);
     strcpy(buffer,argv[1]);
     strcat(buffer," ");
     strcat(aux,"\0");
@@ -35,17 +36,19 @@ int main (int argc, char *argv[]){
     }
 
     strcat(buffer,aux);
-
+    //printf("buffer %s\n",buffer);
+   
     int fd = open("contacto",O_WRONLY);
     write(fd,buffer,sizeof(buffer));
     close(fd);
     
-
-    mkfifo(aux,0666);
-    char line [128] ;
     int fd2 = open(aux,O_RDONLY,0666);
+    
     int size;
-
+    
+    char line [512];
+    
+    
     while (1){
 
         size = read(fd2,line,sizeof (line));
