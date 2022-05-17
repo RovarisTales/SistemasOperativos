@@ -58,6 +58,7 @@ int checkFila(processos* fila,processos *exec);
 int executa(struct processo p);
 void printLista(processos fila);
 char* itoa(int val, int base);
+int pode(int n_transformacoes,char* transformacoes[]);
 //TODO Tem q decidir em relação a o q fazer pois precisamos do fila e exec como variaveis gloabis
 /*
 void sigterm_handler()
@@ -153,8 +154,16 @@ int main (int argc, char *argv[]){
 
             p.id = id;
             p.transformacoes = t;
-            addFila(&fila, p);
-           
+            if(pode(p.n_transformacoes-2,p.transformacoes+2)){
+                printf("PODE ENTRAR\n");
+                addFila(&fila, p);
+            }
+            else{
+                printf("NAO PODE ENTRAR\n");
+                int fd1 = open(p.pid,O_WRONLY,0666);
+                write(fd1,"ECEDIU LIM OP)",15);
+                close(fd1);
+            }
             id++;
         }
         //printLista(fila);
@@ -391,7 +400,7 @@ int ler_arquivo(char *arquivo){
     return 0;
 }
 
-int permissao (int n_transformacoes,char* transformacoes[] ){
+int pode(int n_transformacoes,char* transformacoes[]){
     char var [13];
     int aux[7] = {0};
 
@@ -423,6 +432,92 @@ int permissao (int n_transformacoes,char* transformacoes[] ){
         
     }
 
+    for (int i = 0; i < n_transformacoes; i++){
+        strcpy(var, transformacoes[i]);
+        if(strcmp(var,"nop")== 0)
+        {
+            if ( aux[0] > nopM)
+                {
+                    return 0;
+                } 
+        }
+        else if(strcmp(var,"bcompress")== 0)
+        {
+            if (aux[1] > bcompressM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"bdecompress")== 0)
+        {
+            if (aux[2] > bdecompressM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"gdecompress")== 0)
+        {
+            if (aux[3] > gdecompressM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"gcompress")== 0)
+        {
+            if (aux[4] > gcompressM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"encrypt")== 0)
+        {
+            if (aux[5] > encryptM)
+            {
+                return 0;
+            }
+        }
+        else if(strcmp(var,"decrypt")== 0)
+        {
+            if (aux[6] > decryptM)
+            {
+                return 0;
+            }
+        }
+        
+    }
+    return 1;
+}
+int permissao (int n_transformacoes,char* transformacoes[] ){
+    char var [13];
+    int aux[7] = {0};
+
+
+    for (int i = 0; i < n_transformacoes; i++)
+    {
+        strcpy(var, transformacoes[i]);
+        if(strcmp(var,"nop")== 0){
+            aux[0]++; 
+        }
+        else if(strcmp(var,"bcompress")== 0){
+            aux[1]++;
+        }
+        else if(strcmp(var,"bdecompress")== 0){
+            aux[2]++;
+        }
+        else if(strcmp(var,"gdecompress")== 0){
+            aux[3]++;
+        }
+        else if(strcmp(var,"gcompress")== 0){
+            aux[4]++;
+        }
+        else if(strcmp(var,"encrypt")== 0){
+            aux[5]++;
+        }
+        else if(strcmp(var,"decrypt")== 0){
+            aux[6]++;
+        }
+        
+    }
 
 
 
@@ -555,7 +650,7 @@ void diminuirConf(int n_transformacoes,char* transformacoes[]){
 }
 
 int status(processos *exec,processo p){
-    processos corre = *exec;
+    processos corre = (*exec);
     char linha [128];
     int fd = open(p.pid,O_WRONLY,0666);
     if (corre != NULL){
