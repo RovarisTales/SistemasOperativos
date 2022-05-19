@@ -122,8 +122,7 @@ int main (int argc, char *argv[]){
                     else{
                         
                         p.procfile = 0;
-                        p.pid = malloc(sizeof (strlen(token)));
-                        strcpy(p.pid,token);
+                        p.pid = strdup(token);
                         break;
                     }
                 }
@@ -143,8 +142,7 @@ int main (int argc, char *argv[]){
                     off_t filesize = st.st_size;
                     p.tamanho_original = filesize;
                     
-                    t[es - 2] = malloc(sizeof(token));
-                    strcpy(t[es - 2], token);
+                    t[es - 2] = strdup(token);
                     
                     
                 }
@@ -152,14 +150,11 @@ int main (int argc, char *argv[]){
 
                 else if (p.n_transformacoes+2 == es ){
                   
-                    p.pid = malloc(sizeof (strlen(token)));
-                    strcpy(p.pid,token);
+                    p.pid = strdup(token);
 
                 }
                 else {
-                    t[es - 2] = malloc(sizeof(token));
-                    strcpy(t[es - 2], token);
-                }
+                    t[es - 2] = strdup(token);                }
                 es++;
             }
             
@@ -237,7 +232,7 @@ void printLista(processos fila){
 int addFila(processos* fila,processo p){
 
     int fd1 = open(p.pid,O_WRONLY);
-    write(fd1,"Pending\n",8);
+    write(fd1,"Pending\n",9);
     close(fd1);
     if (*fila == NULL){
         
@@ -353,14 +348,14 @@ int checkFila(processos* fila,processos *exec){
 int executa(struct processo p){
 
 
-    int fd1 = open(p.pid,O_WRONLY,0666);
-    write(fd1,"Processing\n",11);
+    int fd1 = open(p.pid,O_WRONLY);
+    write(fd1,"Processing\n",12);
 
     procfile(p.n_transformacoes,p.transformacoes);
     char final[96];
     strcpy(final,"Concluded (bytes-input: ");
-    char *aux = NULL;
-    aux = itoa(p.tamanho_original,10);
+    char aux[20];
+    snprintf(aux, sizeof(aux), "%d", p.tamanho_original);
     strcat(final,aux);
     //TODO não ta dando print
     int fd4 = open(p.transformacoes[1], 0666);
@@ -371,12 +366,10 @@ int executa(struct processo p){
     //printf("%ld filesize\n",filesize);
     p.tamanho_final = filesize;
     strcat(final,", bytes-output: ");
-    memset(aux,0,strlen(aux));
-    
-    aux = itoa(p.tamanho_final,10);
+    snprintf(aux, sizeof(aux), "%ld", filesize);
     strcat(aux,")");
     strcat(final,aux);
-    write(fd1,final,strlen(final));
+    write(fd1,final,strlen(final)+1);
     
 
 
