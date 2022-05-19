@@ -22,12 +22,12 @@ char* itoa(int val, int base);
 int main (int argc, char *argv[]){
     char buffer [128];
     pid_t pid = getpid();
-    char *aux = NULL;
-    aux = itoa(pid,10);
+    char aux[10];
+    /*aux = itoa(pid,10);*/
+    snprintf(aux, sizeof(aux), "%d", pid);
     mkfifo(aux,0666);
     strcpy(buffer,argv[1]);
     strcat(buffer," ");
-    strcat(aux,"\0");
     for (int i = 2; i < argc; i++){
 
         strcat(buffer,argv[i]);
@@ -42,10 +42,10 @@ int main (int argc, char *argv[]){
     if(fd  == -1){
         perror("open");
     }
-    write(fd,buffer,sizeof(buffer));
+    write(fd,buffer,strlen(buffer)+1);
     close(fd);
     
-    int fd2 = open(aux,O_RDONLY,0666);
+    int fd2 = open(aux,O_RDONLY);
     
     int size;
     
@@ -55,7 +55,7 @@ int main (int argc, char *argv[]){
     //    perror("read");
     //}
     //write(STDOUT_FILENO,line,size);
-    memset(line,0,strlen(line));
+    memset(line,0,sizeof(line));
     
     while (1){
 
@@ -66,10 +66,9 @@ int main (int argc, char *argv[]){
         }
         if(size>0) {
             write(STDOUT_FILENO,line,size);
-            printf("a%s",line);
+            //printf("a%s",line);
         }
-        
-        
+         
         if(strstr(line,")")!= NULL)  break;
         memset(line,0,strlen(line));
     }
