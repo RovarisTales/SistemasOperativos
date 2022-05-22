@@ -9,6 +9,10 @@
 //#include <ctype.h>
 #include <signal.h>
 
+// TODO sinal
+// TODO diminui conf
+// TODO tirar itoa
+
 
 typedef struct Processos* processos;
 typedef struct processo processo;
@@ -245,7 +249,10 @@ int addFila(processo p){
     if (fd1 == -1){
         perror("open");
     }
-    write(fd1,"Pending\n",9);
+    int t = write(fd1,"Pending\n",9);
+    if (t == -1){
+        perror("write");
+    }
     close(fd1);
     if (fila == NULL){
         
@@ -436,8 +443,10 @@ int executa(struct processo p){
     if(fd1 == -1){
         perror("open");
     }
-    write(fd1,"Processing\n",12);
-
+    int t = write(fd1,"Processing\n",12);
+    if (t == -1){
+        perror("write");
+    }
     procfile(p.n_transformacoes,p.transformacoes);
     char final[96];
     strcpy(final,"Concluded (bytes-input: ");
@@ -459,7 +468,10 @@ int executa(struct processo p){
     snprintf(aux, sizeof(aux), "%ld", filesize);
     strcat(aux,")");
     strcat(final,aux);
-    write(fd1,final,strlen(final)+1);
+    int t1 = write(fd1,final,strlen(final)+1);
+    if (t1 == -1){
+        perror("write");
+    }
     
 
 
@@ -778,7 +790,7 @@ int status(processo p){
     
     processos corre = exec;
     char linha [128];
-    
+    int t;
     int fd = open(p.pid,O_WRONLY);
     if(fd == -1){
         perror("open");
@@ -792,7 +804,10 @@ int status(processo p){
             {
                 strcat(linha,p.transformacoes[i]);
             }
-            write(fd,linha,strlen(linha));
+            t = write(fd,linha,strlen(linha));
+            if (t == -1){
+                perror("write");
+            }
             memset(linha,0,strlen(linha));
         }
 
@@ -843,8 +858,10 @@ int status(processo p){
     strcat(operacoes,"/");
     strcat(operacoes,itoa(nopM,10));
     strcat(operacoes," (running/max)");
-    write(fd,operacoes, strlen(operacoes));
-    
+    t = write(fd,operacoes, strlen(operacoes));
+    if (t == -1){
+        perror("write");
+    }
     memset(operacoes,0,strlen(operacoes));
     close(fd);
     
@@ -877,7 +894,7 @@ int procfile(int argc,char *argv[]){
                 //close(pipe_fd)
                 int fd0 = open(argv[0], O_RDONLY,0666);
                 if(fd0 == -1){
-                     perror("open");
+                    perror("open");
                 }
                 //ficehiro passa a ser stdin
                 dup2(fd0,0);
@@ -982,7 +999,10 @@ int procfile(int argc,char *argv[]){
             if(fd1 == -1){
                 perror("open");
             }
-            write(fd1,"done",4);
+            int t = write(fd1,"done",4);
+            if (t == -1){
+                perror("write");
+            }
             close(fd1);
 
             //i++;

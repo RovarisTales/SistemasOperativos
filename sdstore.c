@@ -13,11 +13,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <math.h>
-// TODO sinal
-// TODO diminui conf
-// TODO pending bugado
-
-
 
 int main (int argc, char *argv[]){
     char buffer [128];
