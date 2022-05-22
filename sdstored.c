@@ -27,8 +27,7 @@ struct Processos {
     processo data;
     processos next;
 };
-//struct node node;
-//Parar de usar variaveis globais ?
+
 int bcompress_e = 0;
 int bdecompress_e = 0;
 int decrypt_e = 0;
@@ -52,11 +51,11 @@ void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(int n_transformacoes,char* transformacoes[]);
 int status();
 int permissao (int n_transformacoes,char* transformacoes[] );
-int addFila(processos* fila,struct processo p);
-int removeFila(processos* fila,struct processo p);
-int checkFila(processos* fila,processos *exec);
+int addFila(struct processo p);
+int removeFila(struct processo p);
+int checkFila();
 int executa(struct processo p);
-void printLista(processos fila);
+void printLista();
 char* itoa(int val, int base);
 int pode(int n_transformacoes,char* transformacoes[]);
 //TODO Tem q decidir em relação a o q fazer pois precisamos do fila e exec como variaveis gloabis
@@ -64,21 +63,24 @@ int pode(int n_transformacoes,char* transformacoes[]);
 void sigterm_handler()
 {
     unlink("contacto");
-    /*
-    while (checkFila() == 1)
-    {
-        
+    printf("Terminando o Servidor Graciosamente\n");
+    int i = checkFila();
+    while (i == 1)
+    {   
+        printf("Terminando o Servidor Graciosamente\n");
+        i = checkFila();
+        sleep(1);
     }
-    */
+    printf("Servidor Finalizado com sucesso\n");
     exit(1);
 }
 
-//processos fila = NULL;
-//processos exec = NULL;
+processos fila = NULL;
+processos exec = NULL;
 
 int main (int argc, char *argv[]){
-    processos fila = NULL;
-    processos exec = NULL;
+    //processos fila = NULL;
+    //processos exec = NULL;
     
     if (signal(SIGTERM, sigterm_handler) == SIG_ERR)
     {
@@ -92,6 +94,9 @@ int main (int argc, char *argv[]){
     while (1){
         
         int fd = open("contacto", O_RDONLY);
+        if(fd == -1){
+            perror("open");
+        }
         char line[128];
         read(fd, line, 128);
         close(fd);
@@ -162,19 +167,19 @@ int main (int argc, char *argv[]){
             p.id = id;
             p.transformacoes = t;
             if(pode(p.n_transformacoes-2,p.transformacoes+2)){
-                printf("PODE ENTRAR\n");
-                addFila(&fila, p);
+                //printf("PODE ENTRAR\n");
+                addFila(p);
             }
             else{
                 printf("NAO PODE ENTRAR\n");
                 int fd1 = open(p.pid,O_WRONLY,0666);
-                write(fd1,"ECEDIU LIM OP)",15);
+                
                 close(fd1);
             }
             id++;
         
         }else if(strstr(line,"status")!= NULL){
-            printf("status\n");
+            
             processo p2;
             int st = 0;
             char *resto = NULL;
@@ -196,17 +201,17 @@ int main (int argc, char *argv[]){
             p2.tamanho_original = -1;
             p2.transformacoes = NULL;
             
-            status(&exec,p2);
+            status(p2);
         }
        
         //printLista(fila);
-        checkFila(&fila, &exec);
+        checkFila();
         memset(line, 0, strlen(line));
     }
 }
 
 
-void printLista(processos fila){
+void printLista(){
     
     if (fila != NULL){
         processos  corre = fila;
@@ -229,32 +234,32 @@ void printLista(processos fila){
 
 }
 
-int addFila(processos* fila,processo p){
+int addFila(processo p){
 
     int fd1 = open(p.pid,O_WRONLY);
     write(fd1,"Pending\n",9);
     close(fd1);
-    if (*fila == NULL){
+    if (fila == NULL){
         
         processos new = malloc (sizeof (struct Processos));
         new->data = p;
         new->next = NULL;
         
        
-        (*fila) = new;
+        fila = new;
     }
     else{
         
-        struct processo dados = (*fila)->data;
+        struct processo dados = fila->data;
         if (p.prioridade > dados.prioridade){
             processos new = malloc(sizeof(struct Processos));
             new->data = p;
-            new->next = (*fila);
-            *fila = new;
+            new->next = fila;
+            fila = new;
             return 1;
         }
-        processos aux = (*fila)->next;
-        processos ant = *fila;
+        processos aux = fila->next;
+        processos ant = fila;
         for (; aux != NULL; ant = aux,aux = aux->next){
             dados = aux->data;
             if (p.prioridade > dados.prioridade){
@@ -280,13 +285,62 @@ int addFila(processos* fila,processo p){
     return 0;
 }
 
-int removeFila(processos* fila,struct processo p){
-    processos aux = *fila;
+int addExec(processo p){
+
+    
+    if (exec == NULL){
+        
+        processos new = malloc (sizeof (struct Processos));
+        new->data = p;
+        new->next = NULL;
+        
+       
+        exec = new;
+    }
+    else{
+        
+        struct processo dados = exec->data;
+        if (p.prioridade > dados.prioridade){
+            processos new = malloc(sizeof(struct Processos));
+            new->data = p;
+            new->next = exec;
+            exec = new;
+            return 1;
+        }
+        processos aux = exec->next;
+        processos ant = exec;
+        for (; aux != NULL; ant = aux,aux = aux->next){
+            dados = aux->data;
+            if (p.prioridade > dados.prioridade){
+                
+                processos new = malloc(sizeof(struct Processos));
+                new->data = p;
+                new->next = aux;
+                ant->next = new;
+                return 1;
+            }
+        }
+        
+        processos new = malloc(sizeof(struct Processos));
+        new->data = p;
+        
+        new->next = NULL;
+       
+        ant->next =new;
+        
+        return 1;
+
+    }
+    return 0;
+}
+
+int removeFila(struct processo p){
+    processos aux = fila;
     processos ant = NULL;
     if(aux->data.id == p.id){
         //printf("removendoprimeiro\n");
         ant = aux;
-        *fila = aux -> next;
+        fila = aux -> next;
         free(ant);
         return 1;
     }
@@ -302,11 +356,33 @@ int removeFila(processos* fila,struct processo p){
     return 0;
 }
 
-int checkFila(processos* fila,processos *exec){
-    processos corre = *fila;
-    
-    if (*fila == NULL){
+int removeExec(struct processo p){
+    processos aux = exec;
+    processos ant = NULL;
+    if(aux->data.id == p.id){
+        //printf("removendoprimeiro\n");
+        ant = aux;
+        exec = aux -> next;
+        free(ant);
         return 1;
+    }
+    while (aux != NULL){
+        ant = aux;
+        aux = aux->next;
+        if(aux->data.id == p.id){
+            ant -> next = aux->next;
+            free(aux);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int checkFila(){
+    processos corre = fila;
+    
+    if (fila == NULL){
+        return 0;
     }
     else{
         for (;  corre!=NULL ; corre =corre->next){
@@ -316,8 +392,8 @@ int checkFila(processos* fila,processos *exec){
                 if (permissao(dados.n_transformacoes-2,dados.transformacoes+2)){
 
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
-                    addFila(exec,dados);
-                    removeFila(fila,dados);
+                    addExec(dados);
+                    removeFila(dados);
 
                     
                     
@@ -328,12 +404,12 @@ int checkFila(processos* fila,processos *exec){
                     
                     diminuirConf(dados.n_transformacoes-2,dados.transformacoes+2);
 
-                    removeFila(exec,dados);
+                    removeExec(dados);
                     return 1;
                 }
             }
             else{   
-                printLista((*fila));
+                printLista();
             }
         }
     }
@@ -681,12 +757,15 @@ void diminuirConf(int n_transformacoes,char* transformacoes[]){
     }
 }
 
-int status(processos *exec,processo p){
+int status(processo p){
     
-    processos corre = (*exec);
+    processos corre = exec;
     char linha [128];
-    printf("pid %s\n",p.pid);
+    
     int fd = open(p.pid,O_WRONLY);
+    if(fd == -1){
+        perror("open");
+    }
     if (corre != NULL){
         //char printProc[512];
         for (;  corre!=NULL ; corre =corre->next)

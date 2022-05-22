@@ -61,12 +61,10 @@ int main (int argc, char *argv[]){
 
         size = read(fd2,line,sizeof (line));
         if(size == -1){
-            //perror("read");
-            printf("ERRO\n");
+            perror("read");
         }
         if(size>0) {
             write(STDOUT_FILENO,line,size);
-            //printf("a%s",line);
         }
          
         if(strstr(line,")")!= NULL)  break;
