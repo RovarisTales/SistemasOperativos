@@ -71,6 +71,7 @@ void sigterm_handler()
         i = checkFila();
         sleep(1);
     }
+    wait(NULL);
     printf("Servidor Finalizado com sucesso\n");
     exit(1);
 }
@@ -141,7 +142,9 @@ int main (int argc, char *argv[]){
                 else if (es == 2){
                     
                     int fd3 = open(token, 0666);
-                    
+                    if(fd3 == -1){
+                        perror("open");
+                    }
                     struct stat st;
                     fstat(fd3, &st);
                     off_t filesize = st.st_size;
@@ -173,7 +176,9 @@ int main (int argc, char *argv[]){
             else{
                 printf("NAO PODE ENTRAR\n");
                 int fd1 = open(p.pid,O_WRONLY,0666);
-                
+                if(fd1 == -1){
+                    perror("open");
+                }
                 close(fd1);
             }
             id++;
@@ -237,6 +242,9 @@ void printLista(){
 int addFila(processo p){
 
     int fd1 = open(p.pid,O_WRONLY);
+    if (fd1 == -1){
+        perror("open");
+    }
     write(fd1,"Pending\n",9);
     close(fd1);
     if (fila == NULL){
@@ -425,6 +433,9 @@ int executa(struct processo p){
 
 
     int fd1 = open(p.pid,O_WRONLY);
+    if(fd1 == -1){
+        perror("open");
+    }
     write(fd1,"Processing\n",12);
 
     procfile(p.n_transformacoes,p.transformacoes);
@@ -435,6 +446,9 @@ int executa(struct processo p){
     strcat(final,aux);
     //TODO não ta dando print
     int fd4 = open(p.transformacoes[1], 0666);
+    if(fd4 == -1){
+        perror("open");
+    }
     
     struct stat st;
     fstat(fd4, &st);
@@ -486,6 +500,9 @@ void alteraglobal(char* var,char* num){
 int ler_arquivo(char *arquivo){
     
     int fd = open (arquivo, O_RDONLY);
+    if(fd == -1){
+        perror("open");
+    }
     char buffer[128];
     //char oi[20];
     char delimit[3] = " \n";
@@ -859,10 +876,16 @@ int procfile(int argc,char *argv[]){
             if(!fork()){
                 //close(pipe_fd)
                 int fd0 = open(argv[0], O_RDONLY,0666);
+                if(fd0 == -1){
+                     perror("open");
+                }
                 //ficehiro passa a ser stdin
                 dup2(fd0,0);
                 //close stdout e programa escreve no ficheiro pipe escrita n
                 int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
+                if(fd1 == -1){
+                    perror("open");
+                }
                 //stdout passa a ser pipe de escrita n-2
                 dup2(fd1,STDOUT_FILENO);
                 //programa executa
@@ -881,6 +904,9 @@ int procfile(int argc,char *argv[]){
                 close(p[i-2][0]);
                 //close stdin e programa le o ficheiro fd0
                 int fd0 = open(argv[0], O_RDONLY,0666);
+                if(fd0 == -1){
+                    perror("open");
+                }
                 //ficehiro passa a ser stdin
                 dup2(fd0,STDIN_FILENO);
                 //close stdout e programa escreve no ficheiro pipe escrita n
@@ -924,6 +950,9 @@ int procfile(int argc,char *argv[]){
             if(!fork()){
 
                 int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
+                if(fd1 == -1){
+                    perror("open");
+                }
                 dup2(fd1,STDOUT_FILENO);
                 dup2(p[i-3][0],STDIN_FILENO);
                 execl(transf ,transf,NULL);
@@ -950,6 +979,9 @@ int procfile(int argc,char *argv[]){
         if(exitstatus==0){
             
             int fd1 = open("contacto",O_WRONLY);
+            if(fd1 == -1){
+                perror("open");
+            }
             write(fd1,"done",4);
             close(fd1);
 
