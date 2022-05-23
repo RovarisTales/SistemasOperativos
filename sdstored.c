@@ -52,7 +52,7 @@ void alteraglobal(char* var,char* num);
 int ler_arquivo(char *arquivo);
 int procfile(int argc,char *argv[]);
 void aumentarConf(int n_transformacoes,char* transformacoes[]);
-void diminuirConf(int n_transformacoes,char* transformacoes[]);
+void diminuirConf(char* transformacoes);
 int status();
 int permissao (int n_transformacoes,char* transformacoes[] );
 int addFila(struct processo p);
@@ -62,6 +62,7 @@ int executa(struct processo p);
 void printLista();
 char* itoa(int val, int base);
 int pode(int n_transformacoes,char* transformacoes[]);
+int removeExec(char* p);
 //TODO Tem q decidir em relação a o q fazer pois precisamos do fila e exec como variaveis gloabis
 
 void sigterm_handler()
@@ -211,6 +212,14 @@ int main (int argc, char *argv[]){
             p2.transformacoes = NULL;
             
             status(p2);
+        }
+        else{
+            printf("linha : %s\n",line);
+            if(strchr("1234567890",line[0])!= NULL && strlen(line)>0){
+                printf("entrei\n");
+                removeExec(line);
+            }
+            diminuirConf(line);
         }
        
         //printLista(fila);
@@ -371,20 +380,24 @@ int removeFila(struct processo p){
     return 0;
 }
 
-int removeExec(struct processo p){
+int removeExec(char* p){
+    printf("oi\n");
     processos aux = exec;
     processos ant = NULL;
-    if(aux->data.id == p.id){
-        //printf("removendoprimeiro\n");
+    printf("recebido: %s\n",p);
+    if(strcmp(aux->data.pid ,p)==0){
+        
+        printf("removendoprimeiro\n");
         ant = aux;
         exec = aux -> next;
         free(ant);
         return 1;
     }
     while (aux != NULL){
+        printf("removedno n \n");
         ant = aux;
         aux = aux->next;
-        if(aux->data.id == p.id){
+        if(strcmp(aux->data.pid ,p)==0){
             ant -> next = aux->next;
             free(aux);
             return 1;
@@ -417,9 +430,9 @@ int checkFila(){
                         _exit(1);
                     }
                     
-                    diminuirConf(dados.n_transformacoes-2,dados.transformacoes+2);
+                    //diminuirConf(dados.n_transformacoes-2,dados.transformacoes+2);
 
-                    removeExec(dados);
+                    //removeExec(dados);
                     return 1;
                 }
             }
@@ -448,6 +461,11 @@ int executa(struct processo p){
         perror("write");
     }
     procfile(p.n_transformacoes,p.transformacoes);
+    
+    
+
+
+
     char final[96];
     strcpy(final,"Concluded (bytes-input: ");
     char aux[20];
@@ -468,15 +486,27 @@ int executa(struct processo p){
     snprintf(aux, sizeof(aux), "%ld", filesize);
     strcat(aux,")");
     strcat(final,aux);
-    int t1 = write(fd1,final,strlen(final)+1);
+    int t2 = write(fd1,final,strlen(final)+1);
+    if (t2 == -1){
+        perror("write");
+    }
+    close(fd1);
+
+
+    printf("filho %s\n",p.pid);
+    int fd2 = open("contacto",O_WRONLY);
+    if(fd2 == -1){
+        perror("open");
+    }
+    int t1 = write(fd2,p.pid,strlen(p.pid)+1);
     if (t1 == -1){
         perror("write");
     }
-    
+    int c = close(fd2);
+    if(c == -1){
+        perror("close");
+    }
 
-
-
-    close(fd1);
     return 1;
 }
 
@@ -750,10 +780,10 @@ void aumentarConf(int n_transformacoes,char* transformacoes[]){
     }
 }
 
-void diminuirConf(int n_transformacoes,char* transformacoes[]){
+void diminuirConf(char* transformacoes){
     char var [13];
-    for (int i = 0; i < n_transformacoes; i++){
-        strcpy(var, transformacoes[i]);
+    //for (int i = 0; i < n_transformacoes; i++){
+        strcpy(var, transformacoes);
         if(strcmp(var,"nop")== 0)
         {
             nop_e--;
@@ -783,7 +813,7 @@ void diminuirConf(int n_transformacoes,char* transformacoes[]){
             decrypt_e--;
         }
 
-    }
+    //}
 }
 
 int status(processo p){
@@ -988,24 +1018,26 @@ int procfile(int argc,char *argv[]){
         
     }
     //LISTA PIDS PENDENTES
-    //int i = 2;
+    int i = 2;
     while(wait(&exitstatus)!= -1){
         exitstatus = WEXITSTATUS(exitstatus);
 
         
         if(exitstatus==0){
-            
+            printf("argu %s\n",argv[i]);
             int fd1 = open("contacto",O_WRONLY);
             if(fd1 == -1){
                 perror("open");
             }
-            int t = write(fd1,"done",4);
+            int t = write(fd1,argv[i],strlen(argv[i])+1);
             if (t == -1){
                 perror("write");
             }
-            close(fd1);
-
-            //i++;
+            int c = close(fd1);
+            if(c == -1){
+                perror("close");
+            }
+            i++;
         }
     }
    
