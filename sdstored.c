@@ -214,9 +214,9 @@ int main (int argc, char *argv[]){
             status(p2);
         }
         else{
-            printf("linha : %s\n",line);
+            //printf("linha : %s\n",line);
             if(strchr("1234567890",line[0])!= NULL && strlen(line)>0){
-                printf("entrei\n");
+                //printf("entrei\n");
                 removeExec(line);
             }
             diminuirConf(line);
@@ -381,10 +381,10 @@ int removeFila(struct processo p){
 }
 
 int removeExec(char* p){
-    printf("oi\n");
+    //printf("oi\n");
     processos aux = exec;
     processos ant = NULL;
-    printf("recebido: %s\n",p);
+    //printf("recebido: %s\n",p);
     if(strcmp(aux->data.pid ,p)==0){
         
         printf("removendoprimeiro\n");
@@ -394,7 +394,7 @@ int removeExec(char* p){
         return 1;
     }
     while (aux != NULL){
-        printf("removedno n \n");
+        printf("removedno n\n");
         ant = aux;
         aux = aux->next;
         if(strcmp(aux->data.pid ,p)==0){
@@ -493,7 +493,7 @@ int executa(struct processo p){
     close(fd1);
 
 
-    printf("filho %s\n",p.pid);
+    //printf("filho %s\n",p.pid);
     int fd2 = open("contacto",O_WRONLY);
     if(fd2 == -1){
         perror("open");
@@ -829,11 +829,14 @@ int status(processo p){
         //char printProc[512];
         for (;  corre!=NULL ; corre =corre->next)
         {
-            strcpy(linha,"Processo ");
-            for (int i = 0 ; i < p.n_transformacoes; i++)
+            t = write(fd,"Processo ",10);
+            snprintf(linha, sizeof(linha), "%d", corre->data.id);
+            for (int i = 0 ; i < corre->data.n_transformacoes; i++)
             {
-                strcat(linha,p.transformacoes[i]);
+                strcat(linha," ");
+                strcat(linha,corre->data.transformacoes[i]);
             }
+            strcat(linha,"\n");
             t = write(fd,linha,strlen(linha));
             if (t == -1){
                 perror("write");
@@ -1024,7 +1027,7 @@ int procfile(int argc,char *argv[]){
 
         
         if(exitstatus==0){
-            printf("argu %s\n",argv[i]);
+            //printf("argu %s\n",argv[i]);
             int fd1 = open("contacto",O_WRONLY);
             if(fd1 == -1){
                 perror("open");
