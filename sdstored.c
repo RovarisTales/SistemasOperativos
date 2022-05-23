@@ -897,7 +897,7 @@ int procfile(int argc,char *argv[]){
                     perror("open");
                 }
                 //ficehiro passa a ser stdin
-                dup2(fd0,0);
+                dup2(fd0,STDIN_FILENO);
                 //close stdout e programa escreve no ficheiro pipe escrita n
                 int fd1 = open(argv[1],O_CREAT|O_WRONLY|O_TRUNC,0666);
                 if(fd1 == -1){
