@@ -15,7 +15,7 @@
 #include <math.h>
 
 int main (int argc, char *argv[]){
-    char buffer [128];
+    char buffer [256];
     pid_t pid = getpid();
     char aux[10];
     /*aux = itoa(pid,10);*/

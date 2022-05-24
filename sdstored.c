@@ -103,8 +103,8 @@ int main (int argc, char *argv[]){
         if(fd == -1){
             perror("open");
         }
-        char line[128];
-        read(fd, line, 128);
+        char line[256];
+        read(fd, line, sizeof(line));
         close(fd);
        
         
@@ -184,6 +184,7 @@ int main (int argc, char *argv[]){
                 if(fd1 == -1){
                     perror("open");
                 }
+                write(fd1,"(Excede o maximo de operaçoes)",32);
                 close(fd1);
             }
             id++;
