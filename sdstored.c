@@ -48,6 +48,9 @@ int gcompressM = 0;
 int gdecompressM = 0;
 int nopM = 0;
 
+processos fila = NULL;
+processos exec = NULL;
+
 void alteraglobal(char* var,char* num);
 int ler_arquivo(char *arquivo);
 int procfile(int argc,char *argv[]);
@@ -68,7 +71,7 @@ void sigterm_handler()
 {
     int exitstatus;
     unlink("contacto");
-    printf("Terminando o Servidor Graciosamente\n");
+    write(STDOUT_FILENO,"Terminando o Servidor Graciosamente\n", strlen("Terminando o Servidor Graciosamente\n")+1);
     int i = checkFila();
     while (i == 1)
     {   
@@ -79,12 +82,10 @@ void sigterm_handler()
     while(wait(&exitstatus)!= -1){
         exitstatus = WEXITSTATUS(exitstatus);
     }
-    printf("Servidor Finalizado com sucesso\n");
+    write(STDOUT_FILENO,"Servidor Finalizado com sucesso\n", strlen("Servidor Finalizado com sucesso\n")+1);
     exit(1);
 }
 
-processos fila = NULL;
-processos exec = NULL;
 
 int main (int argc, char *argv[]){
     //processos fila = NULL;
@@ -412,14 +413,18 @@ int removeExec(char* p){
 int checkFila(){
     processos corre = fila;
     
-    if (fila == NULL){
+    if (fila == NULL)
+    {
         return 0;
     }
-    else{
-        for (;  corre!=NULL ; corre =corre->next){
+    else
+    {
+        for (;  corre!=NULL ; corre =corre->next)
+        {
             struct processo dados = corre->data;
             
-            if(dados.procfile == 1){
+            if(dados.procfile == 1)
+            {
                 if (permissao(dados.n_transformacoes-2,dados.transformacoes+2)){
 
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
