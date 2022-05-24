@@ -60,7 +60,6 @@ int removeFila(struct processo p);
 int checkFila();
 int executa(struct processo p);
 void printLista();
-char* itoa(int val, int base);
 int pode(int n_transformacoes,char* transformacoes[]);
 int removeExec(char* p);
 //TODO Tem q decidir em relação a o q fazer pois precisamos do fila e exec como variaveis gloabis
@@ -851,50 +850,14 @@ int status(processo p){
     }
 
     char operacoes [512];
-    
-    
+    char
+    snprintf(operacoes,sizeof(operacoes), "transf bcompress: %d / %d (running/max)\n transf bdecompress: %d / %d (running/max)
+                                          "transf gcompress: %d / %d (running/max)\n transf gdecompress: %d / %d (running/max)
+                                          "transf encrypt: %d / %d (running/max)\n transf decrypt: %d / %d (running/max)\ntransf nop: %d / %d (running/max)"
+                                          ,bcompress_e,bcompressM,bdecompress,bdecompressM,gcompress_e,gcompressM
+                                          ,gdecompress,gdecompressM,encrypt_e,encryptM,decrypt_e,decryptM,nop_e,nopM  );
     printf("%s\n",operacoes);
-    strcat(operacoes,"transf bcompress: ");
-    strcat(operacoes,itoa(bcompress_e,10));
-    strcat(operacoes,"/");
-    strcat(operacoes,itoa(bcompressM,10));
-    strcat(operacoes," (running/max)\n");
-    
-    strcat(operacoes,"transf bdecompress: ");
-    strcat(operacoes,itoa(bdecompress_e,10));
-    strcat(operacoes,"/");
-    strcat(operacoes,itoa(bdecompressM,10));
-    strcat(operacoes," (running/max)\n");
-    
-    strcat(operacoes,"transf gcompress: ");
-    strcat(operacoes,itoa(gcompress_e,10));
-    strcat(operacoes,"/");
-    strcat(operacoes,itoa(gcompressM,10));
-    strcat(operacoes," (running/max)\n");
-    
-    strcat(operacoes,"transf gdecompress: ");
-    strcat(operacoes,itoa(gdecompress_e,10));
-    strcat(operacoes,"/");
-    strcat(operacoes,itoa(gdecompressM,10));
-    strcat(operacoes," (running/max)\n");
-    
-    strcat(operacoes,"transf encrypt: ");
-    strcat(operacoes,itoa(encrypt_e,10));
-    strcat(operacoes,"/");
-    strcat(operacoes,itoa(encryptM,10));
-    strcat(operacoes," (running/max)\n");
-    
-    strcat(operacoes,"transf decrypt: ");
-    strcat(operacoes,itoa(decrypt_e,10));
-    strcat(operacoes,"/");
-    strcat(operacoes,itoa(decryptM,10));
-    strcat(operacoes," (running/max)\n");
-    
-    strcat(operacoes,"transf nop: ");
-    strcat(operacoes,itoa(nop_e,10));
-    strcat(operacoes,"/");
-    strcat(operacoes,itoa(nopM,10));
-    strcat(operacoes," (running/max)");
+
     t = write(fd,operacoes, strlen(operacoes));
     if (t == -1){
         perror("write");
@@ -1053,21 +1016,7 @@ int procfile(int argc,char *argv[]){
 
 }
 
-char* itoa(int val, int base){
-    if(val == 0){
-        static char zero[2] = "0";
-        return &zero[0]; 
-    }
-    static char buf[32] = {0};
 
-    int i = 30;
-
-    for(; val && i ; --i, val /= base) {
-        buf[i] = "0123456789abcdef"[val % base];
-    }
-    return &buf[i+1];
-
-}
 
 
 
