@@ -67,6 +67,7 @@ int removeExec(char* p);
 
 void sigterm_handler()
 {
+    int exitstatus;
     unlink("contacto");
     printf("Terminando o Servidor Graciosamente\n");
     int i = checkFila();
@@ -76,7 +77,9 @@ void sigterm_handler()
         i = checkFila();
         sleep(1);
     }
-    wait(NULL);
+    while(wait(&exitstatus)!= -1){
+        exitstatus = WEXITSTATUS(exitstatus);
+    }
     printf("Servidor Finalizado com sucesso\n");
     exit(1);
 }
@@ -179,7 +182,7 @@ int main (int argc, char *argv[]){
                 addFila(p);
             }
             else{
-                printf("NAO PODE ENTRAR\n");
+                //printf("NAO PODE ENTRAR\n");
                 int fd1 = open(p.pid,O_WRONLY,0666);
                 if(fd1 == -1){
                     perror("open");
@@ -472,7 +475,7 @@ int executa(struct processo p){
     char aux[20];
     snprintf(aux, sizeof(aux), "%d", p.tamanho_original);
     strcat(final,aux);
-    //TODO não ta dando print
+    
     int fd4 = open(p.transformacoes[1], 0666);
     if(fd4 == -1){
         perror("open");
@@ -549,9 +552,9 @@ int ler_arquivo(char *arquivo){
     char buffer[128];
     //char oi[20];
     char delimit[3] = " \n";
-    char* resto;
+    char* resto = NULL;
     read(fd,buffer,128);
-    char* token;
+    char* token = NULL;
     char ant[12];
     for(token = strtok_r(buffer, delimit,&resto); token != NULL ; token = strtok_r(resto,delimit,&resto)){
         
