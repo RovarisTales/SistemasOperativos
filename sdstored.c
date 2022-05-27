@@ -51,6 +51,7 @@ int nopM = 0;
 processos fila = NULL;
 processos exec = NULL;
 
+int addExec(processo p)
 void alteraglobal(char* var,char* num);
 int ler_arquivo(char *arquivo);
 int procfile(int argc,char *argv[]);
@@ -313,10 +314,12 @@ int addFila(processo p){
     return 0;
 }
 
-int addExec(processo p){
+int addExec(processo p)
+{
 
     
-    if (exec == NULL){
+    if (exec == NULL)
+    {
         
         processos new = malloc (sizeof (struct Processos));
         new->data = p;
@@ -325,7 +328,8 @@ int addExec(processo p){
        
         exec = new;
     }
-    else{
+    else
+    {
         
         struct processo dados = exec->data;
         if (p.prioridade > dados.prioridade){
@@ -855,6 +859,8 @@ int status(processo p){
 
     char operacoes [512];
     snprintf(operacoes , sizeof(operacoes), "transf bcompress: %d / %d (running/max)\ntransf bdecompress: %d / %d (running/max)\ntransf gcompress: %d / %d (running/max)\ntransf gdecompress: %d / %d (running/max)\ntransf encrypt: %d / %d (running/max)\ntransf decrypt: %d / %d (running/max)\ntransf nop: %d / %d (running/max)",bcompress_e,bcompressM,bdecompress_e,bdecompressM,gcompress_e,gcompressM,gdecompress_e,gdecompressM,encrypt_e,encryptM,decrypt_e,decryptM,nop_e,nopM  );
+    //printf("%s\n",operacoes);
+
     t = write(fd,operacoes, strlen(operacoes));
     if (t == -1){
         perror("write");
