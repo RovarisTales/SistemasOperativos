@@ -6,12 +6,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-//#include <ctype.h>
 #include <signal.h>
-
-// TODO sinal
-// TODO diminui conf
-// TODO tirar itoa
 
 
 typedef struct Processos* processos;
@@ -68,7 +63,6 @@ int executa(struct processo p);
 void printLista();
 int pode(int n_transformacoes,char* transformacoes[]);
 int removeExec(char* p);
-//TODO Tem q decidir em relação a o q fazer pois precisamos do fila e exec como variaveis gloabis
 
 void sigterm_handler()
 {
