@@ -25,13 +25,14 @@ struct processo{
     char* pid;
     int tamanho_original ;
     int tamanho_final;
-    char* path;
 };
 
 struct Processos {
     processo data;
     processos next;
 };
+
+char* path = NULL;
 
 int bcompress_e = 0;
 int bdecompress_e = 0;
@@ -55,7 +56,7 @@ processos exec = NULL;
 int addExec(processo p);
 void alteraglobal(char* var,char* num);
 int ler_arquivo(char *arquivo);
-int procfile(int argc,char *argv[],char* path);
+int procfile(int argc,char *argv[]);
 void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(char* transformacoes);
 int status();
@@ -103,7 +104,6 @@ int main (int argc, char *argv[]){
     
     int id = 0;
     ler_arquivo(argv[1]);
-    char *path = NULL;
     path = strdup(argv[2]);
     mkfifo("contacto", 0666);
     while (1){
@@ -120,7 +120,6 @@ int main (int argc, char *argv[]){
         if(strstr(line,"proc-file")!=NULL) {
             
             processo p;
-            p.path = strdup(path);
             int es = -2;
             for (int aux = 0; line[aux] != '\0'; aux++){
                 if (line[aux] == ' ') es++;
@@ -476,7 +475,7 @@ int executa(struct processo p){
     if (t == -1){
         perror("write");
     }
-    procfile(p.n_transformacoes,p.transformacoes,p.path);
+    procfile(p.n_transformacoes,p.transformacoes);
     
     
 
@@ -876,7 +875,7 @@ int status(processo p){
     return 0;
 }
 
-int procfile(int argc,char *argv[],char* path){
+int procfile(int argc,char *argv[]){
     int exitstatus;
     //criar n-2 pipes para os filhos
     int p[argc-2][2];
