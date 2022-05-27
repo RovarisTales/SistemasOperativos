@@ -1,4 +1,4 @@
-#include <unistd.h>
+    #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -391,14 +391,12 @@ int removeExec(char* p){
     //printf("recebido: %s\n",p);
     if(strcmp(aux->data.pid ,p)==0){
         
-        printf("removendoprimeiro\n");
         ant = aux;
         exec = aux -> next;
         free(ant);
         return 1;
     }
     while (aux != NULL){
-        printf("removedno n\n");
         ant = aux;
         aux = aux->next;
         if(strcmp(aux->data.pid ,p)==0){
@@ -410,7 +408,8 @@ int removeExec(char* p){
     return 0;
 }
 
-int checkFila(){
+int checkFila()
+{
     processos corre = fila;
     
     if (fila == NULL)
@@ -430,7 +429,7 @@ int checkFila(){
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
                     addExec(dados);
                     removeFila(dados);
-
+                    printf("%d - prioridade ", dados.prioridade);
                     
                     
                     if (!fork()){
@@ -855,14 +854,7 @@ int status(processo p){
     }
 
     char operacoes [512];
-    char
-    snprintf(operacoes,sizeof(operacoes), "transf bcompress: %d / %d (running/max)\n transf bdecompress: %d / %d (running/max)
-                                          "transf gcompress: %d / %d (running/max)\n transf gdecompress: %d / %d (running/max)
-                                          "transf encrypt: %d / %d (running/max)\n transf decrypt: %d / %d (running/max)\ntransf nop: %d / %d (running/max)"
-                                          ,bcompress_e,bcompressM,bdecompress,bdecompressM,gcompress_e,gcompressM
-                                          ,gdecompress,gdecompressM,encrypt_e,encryptM,decrypt_e,decryptM,nop_e,nopM  );
-    printf("%s\n",operacoes);
-
+    snprintf(operacoes , sizeof(operacoes), "transf bcompress: %d / %d (running/max)\ntransf bdecompress: %d / %d (running/max)\ntransf gcompress: %d / %d (running/max)\ntransf gdecompress: %d / %d (running/max)\ntransf encrypt: %d / %d (running/max)\ntransf decrypt: %d / %d (running/max)\ntransf nop: %d / %d (running/max)",bcompress_e,bcompressM,bdecompress_e,bdecompressM,gcompress_e,gcompressM,gdecompress_e,gdecompressM,encrypt_e,encryptM,decrypt_e,decryptM,nop_e,nopM  );
     t = write(fd,operacoes, strlen(operacoes));
     if (t == -1){
         perror("write");
@@ -1020,7 +1012,6 @@ int procfile(int argc,char *argv[]){
 
 
 }
-
 
 
 
