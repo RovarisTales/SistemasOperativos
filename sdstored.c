@@ -25,6 +25,7 @@ struct processo{
     char* pid;
     int tamanho_original ;
     int tamanho_final;
+    char* path;
 };
 
 struct Processos {
@@ -51,10 +52,10 @@ int nopM = 0;
 processos fila = NULL;
 processos exec = NULL;
 
-int addExec(processo p)
+int addExec(processo p);
 void alteraglobal(char* var,char* num);
 int ler_arquivo(char *arquivo);
-int procfile(int argc,char *argv[]);
+int procfile(int argc,char *argv[],char* path);
 void aumentarConf(int n_transformacoes,char* transformacoes[]);
 void diminuirConf(char* transformacoes);
 int status();
@@ -91,7 +92,10 @@ void sigterm_handler()
 int main (int argc, char *argv[]){
     //processos fila = NULL;
     //processos exec = NULL;
-    
+    if (argc!=3){
+        printf("não foram especificados os argumentos necessarios");
+        return 1;
+    }
     if (signal(SIGTERM, sigterm_handler) == SIG_ERR)
     {
         perror("SIGTERM failed");
@@ -99,7 +103,8 @@ int main (int argc, char *argv[]){
     
     int id = 0;
     ler_arquivo(argv[1]);
-    
+    char *path = NULL;
+    path = strdup(argv[2]);
     mkfifo("contacto", 0666);
     while (1){
         
@@ -115,7 +120,7 @@ int main (int argc, char *argv[]){
         if(strstr(line,"proc-file")!=NULL) {
             
             processo p;
-
+            p.path = strdup(path);
             int es = -2;
             for (int aux = 0; line[aux] != '\0'; aux++){
                 if (line[aux] == ' ') es++;
@@ -471,7 +476,7 @@ int executa(struct processo p){
     if (t == -1){
         perror("write");
     }
-    procfile(p.n_transformacoes,p.transformacoes);
+    procfile(p.n_transformacoes,p.transformacoes,p.path);
     
     
 
@@ -871,7 +876,7 @@ int status(processo p){
     return 0;
 }
 
-int procfile(int argc,char *argv[]){
+int procfile(int argc,char *argv[],char* path){
     int exitstatus;
     //criar n-2 pipes para os filhos
     int p[argc-2][2];
