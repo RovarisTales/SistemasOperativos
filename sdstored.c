@@ -438,7 +438,7 @@ int checkFila()
                     aumentarConf(dados.n_transformacoes-2,dados.transformacoes+2);
                     addExec(dados);
                     removeFila(dados);
-                    printf("%d - prioridade ", dados.prioridade);
+                    //printf("%d - prioridade ", dados.prioridade);
                     
                     
                     if (!fork()){
@@ -880,7 +880,8 @@ int procfile(int argc,char *argv[],char* path){
     int exitstatus;
     //criar n-2 pipes para os filhos
     int p[argc-2][2];
-
+    //printf("%s\n",path);
+    //printf("%s\n",argv[0]);
     for (int i = 2 ; i < argc ; i++){
         //pipe 0 leitura
         //pipe 1 escrita
@@ -893,8 +894,10 @@ int procfile(int argc,char *argv[],char* path){
         }
         //TODO aqui trocar o coiso
         char transf [17 + strlen(argv[i])];
-        strcpy(transf,"./SDStore-transf/");
+        strcpy(transf,"./");
+        strcat(transf,path);
         strcat(transf ,argv[i]);
+        //printf("%s\n",transf);
         //primeiro ciclo e 1 argumento
         if(i == 2 && (i == (argc -1))){
             
