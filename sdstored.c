@@ -896,6 +896,7 @@ int procfile(int argc,char *argv[],char* path){
         char transf [17 + strlen(argv[i])];
         strcpy(transf,"./");
         strcat(transf,path);
+        strcat(transf ,"/");
         strcat(transf ,argv[i]);
         //printf("%s\n",transf);
         //primeiro ciclo e 1 argumento
