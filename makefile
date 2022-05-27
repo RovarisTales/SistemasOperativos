@@ -11,4 +11,4 @@ sdstore: sdstore.c
 	gcc -Wall sdstore.c -o sdstore
 
 clean:
-	rm {sdstore,sdstored}
+	rm sdstore sdstored
