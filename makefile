@@ -1,20 +1,14 @@
 all: server client
 
-server: bin/sdstored
+server: sdstored
 
-client: bin/sdstore
+client: sdstore
 
-bin/sdstored: obj/sdstored.o
-	gcc -g sdstored.o -o bin/sdstored
+sdstored: sdstored.c
+	gcc -Wall sdstored.c -o sdstored
 
-obj/sdstored.o: bin/sdstored.c
-	gcc -Wall -g -c sdstored.c obj/sdstored.o
-
-bin/sdstore: obj/sdstore.o
-	gcc -g sdstored.o -o bin/sdstored
-
-obj/sdstore.o: bin/sdstore.c
-	gcc -Wall -g -c sdstore.c obj/sdstore.o
+sdstore: sdstore.c
+	gcc -Wall sdstored.c -o sdstore
 
 clean:
-	rm obj/* bin/sdstored
+	rm {sdstore,sdstored}
